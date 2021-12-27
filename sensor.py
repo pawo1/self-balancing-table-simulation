@@ -1,9 +1,13 @@
-class Sensor:
-    _asked_value = 0.0
+from dataclasses import dataclass
 
-    def __init__(self, value=0.0):
-        self._asked_value = value
+
+@dataclass
+class Sensor:
+    _asked_value: float = 0.0
 
     # calculate error
     def error(self, value):
         return self._asked_value - value
+
+    def set_asked_value(self, asked_value: float):
+        self._asked_value = asked_value

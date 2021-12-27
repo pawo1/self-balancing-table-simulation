@@ -2,51 +2,23 @@ import dimension
 
 
 class Table:
-    _x: dimension.Dimension
-    _y: dimension.Dimension
+    x: dimension.Dimension
+    y: dimension.Dimension
 
-    def __init__(self, pos_x=0.7, pos_y=0.3, speed_x=0.0, speed_y=0.0, angle_x=0.0, angle_y=0.0, g=9.81):
-        self._x = dimension.Dimension(pos_x, speed_x, angle_x, g)
-        self._y = dimension.Dimension(pos_y, speed_y, angle_y, g)
+    def __init__(self, pos_x: float = 0.0, pos_y: float = 0.0, speed_x: float = 0.0,
+                 speed_y: float = 0.0, angle_x: float = 0.0, angle_y: float = 0.0,
+                 g: float = 9.81):
+        self.x = dimension.Dimension(pos_x, speed_x, angle_x, g)
+        self.y = dimension.Dimension(pos_y, speed_y, angle_y, g)
+        self.x.init_noise_generator()
+        self.y.init_noise_generator()
 
-    def simulate(self, angle_x, angle_y):
-        pos_x = self._x.simulate(angle_x)
-        pos_y = self._y.simulate(angle_y)
+    def reset(self):
+        self.x.reset()
+        self.y.reset()
+
+    def simulate_position(self, angle_x, angle_y):
+        pos_x = self.x.simulate_position(angle_x)
+        pos_y = self.y.simulate_position(angle_y)
 
         return pos_x, pos_y
-
-    def get_pos_x_list(self):
-        return self._x.get_pos_list()
-
-    def get_pos_x(self, n=-1):
-        return self._x.get_pos(n)
-
-    def get_pos_y_list(self):
-        return self._y.get_pos_list()
-
-    def get_pos_y(self, n=-1):
-        return self._y.get_pos(n)
-
-    def get_angle_x_list(self):
-        return self._x.get_angle_list()
-
-    def get_angle_x(self, n=-1):
-        return self._x.get_angle(n)
-
-    def get_angle_y_list(self):
-        return self._y.get_angle_list()
-
-    def get_angle_y(self, n=-1):
-        return self._y.get_angle(n)
-
-    def get_speed_x_list(self):
-        return self._x.get_speed_list()
-
-    def get_speed_x(self, n=-1):
-        return self._x.get_speed(n)
-
-    def get_speed_y_list(self):
-        return self._y.get_speed_list()
-
-    def get_speed_y(self, n=-1):
-        return self._y.get_speed(n)

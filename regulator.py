@@ -1,35 +1,34 @@
+from dataclasses import dataclass, field
+
+
+@dataclass
 class Regulator:
     # servo voltage range of work[V]
-    _u_min = -10.0
-    _u_max = 10.0
-    _u_last = 0
+    _voltage_min: float = -10.0
+    _voltage_max: float = 10.0
+    _voltage_last: float = 0
     # amplification
-    _kp = 0.015
+    _kp: float = 0.015
     # sampling time [s]
-    _tp = 0.1
+    _tp: float = 0.01
     # integration time
-    _ti = 0.05
+    _ti: float = 0.05
     # derivative time
-    _td = 0.25
+    _td: float = 0.25
     # algorithm type 0 - positional, 1 - incremental
-    _pid_type = 0
+    _pid_type: int = 0
+    _sum_err: float = field(init=False, default=0)
 
-    def __init__(self, u_min=-10.0, u_max=10.0, kp=0.25, tp=0.1, ti=0.05, td=0.25, pid_type=1):
-        self._u_min = float(u_min)
-        self._u_max = float(u_max)
-        self._kp = float(kp)
-        self._tp = float(tp)
-        self._ti = float(ti)
-        self._td = float(td)
-        self._pid_type = pid_type
-        # error list
-        self.error = []
-        # sum of errors
-        self.sum_err = 0
+    def __post_init__(self):
+        self._error = []
+
+    def reset(self):
+        self._error.clear()
+        self._sum_err = 0
 
     # add error to regulator memory
     def add_error(self, val):
-        self.error.append(val)
+        self._error.append(val)
 
     # run PID regulator
     def run_pid(self):
@@ -39,25 +38,54 @@ class Regulator:
         else:
             return self.pid_incremental()
 
-    # positional algorithm
     def pid_positional(self):
 
-        self.sum_err += self.error[-1]
+        # latest error is always last element in list
+        self._sum_err += self._error[-1]
 
-        val = self._kp * (self.error[-1] + ((self._tp / self._ti) * self.sum_err) + ((self._td / self._tp) *
-                                                                                    (self.error[-1] - self.error[-2])))
-        print(val)
+        integral_value = (self._tp / self._ti) * self._sum_err
+        derivative_value = (self._td / self._tp) * (self._error[-1] - self._error[-2])
+        # calculate voltage value proportional to current error, integral and derivative part
+        value = self._kp * (self._error[-1] + integral_value + derivative_value)
+
         # limit voltage to servo range of work
-        return min(max(self._u_min, val), self._u_max)
+        limited_voltage = min(max(self._voltage_min, value), self._voltage_max)
 
-    # incremental algorithm
+        return limited_voltage
+
     def pid_incremental(self):
-        delta_e = (self.error[-1] - self.error[-2])
-        val = self._kp * (delta_e + ((self._tp / self._ti) * self.error[-1]) + ((self._td / self._tp) *
-                                                                                delta_e * delta_e))
 
-        u = self._u_last + val
+        # delta based on previous and current error
+        delta_e = (self._error[-1] - self._error[-2])
+
+        integral_value = (self._tp / self._ti) * self._error[-1]
+        derivative_value = (self._td / self._tp) * delta_e * delta_e
+        # calculate voltage value proportional to current error, integral and derivative part
+        value = self._kp * (delta_e + integral_value + derivative_value)
+
+        voltage = self._voltage_last + value
         # limit voltage to servo range of work
-        self._u_last = min(max(self._u_min, u), self._u_max)
+        self._voltage_last = min(max(self._voltage_min, voltage), self._voltage_max)
 
-        return self._u_last
+        return self._voltage_last
+
+    def set_voltage_min(self, voltage_min: float):
+        self._voltage_min = voltage_min
+
+    def set_voltage_max(self, voltage_max: float):
+        self._voltage_max = voltage_max
+
+    def set_kp(self, kp: float):
+        self._kp = kp
+
+    def set_tp(self, tp: float):
+        self._tp = tp
+
+    def set_ti(self, ti: float):
+        self._ti = ti
+
+    def set_td(self, td: float):
+        self._td = td
+
+    def set_pid_type(self, pid_type: int):
+        self._pid_type = pid_type

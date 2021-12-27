@@ -1,18 +1,31 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class Servo:
     # servo angle range of work [degrees]
-    _alpha_min = -30.0
-    _alpha_max = 30.0
+    _angle_min: float = -30.0
+    _angle_max: float = 30.0
     # servo voltage range of work [Volt]
-    _voltage_min = -10.0
-    _voltage_max = 10.0
-
-    def __init__(self, alpha_min=-30.0, alpha_max=30.0, voltage_min=-10.0, voltage_max=10.0):
-        self._alpha_min = alpha_min
-        self._alpha_max = alpha_max
-        self._voltage_min = voltage_min
-        self._voltage_max = voltage_max
+    _voltage_min: float = -10.0
+    _voltage_max: float = 10.0
 
     # calculate angle based on signal voltage and rotate servo
     # TODO: rotation = ax + b , ax only now
     def rotate(self, signal):
-        return ( (self._alpha_max - self._alpha_min) / (self._voltage_max - self._voltage_min) ) * signal
+
+        a = (self._angle_max - self._angle_min)/(self._voltage_max-self._voltage_min)
+
+        return a * signal
+
+    def set_angle_min(self, angle_min: float):
+        self._angle_min = angle_min
+
+    def set_angle_max(self, angle_max: float):
+        self._angle_max = angle_max
+
+    def set_voltage_min(self, voltage_min: float):
+        self._voltage_min = voltage_min
+
+    def set_voltage_max(self, voltage_max: float):
+        self._voltage_max = voltage_max
