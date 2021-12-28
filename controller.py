@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from setters_dict import setters
 import table
 import servo
@@ -11,6 +11,7 @@ class Controller:
     _tp: float = 0.01
     _t_sim: float = 60
     _step: int = 0
+    simulation_range: int = field(init=False)
 
     def __post_init__(self):
 
@@ -90,3 +91,11 @@ class Controller:
                 method(value)
 
         self.reset_simulation()
+
+    def set_tp(self, tp: float):
+        self._tp = tp
+        self.simulation_range = int(self._t_sim / self._tp)
+
+    def set_simulation_time(self, t_sim: float):
+        self._t_sim = t_sim
+        self.simulation_range = int(self._t_sim / self._tp)
