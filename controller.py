@@ -70,6 +70,9 @@ class Controller:
 
     def set_property(self, prop: str, value):
 
+        if hasattr(self, prop):
+            getattr(self, prop)(value)
+
         self.set_property_axis(prop, 'x', value)
         self.set_property_axis(prop, 'y', value)
 
