@@ -3,7 +3,7 @@ import controller
 from bokeh.io import curdoc
 from bokeh.layouts import row, column, layout
 from bokeh.models.widgets import Tabs, Panel
-from bokeh.models import ColumnDataSource, RadioButtonGroup, Toggle
+from bokeh.models import ColumnDataSource, RadioButtonGroup, Toggle, Select
 from bokeh.models.widgets import Slider, RangeSlider, TextInput
 from bokeh.plotting import figure
 from functools import partial
@@ -104,13 +104,15 @@ def update_plots():
 #  (i.e. max sim_dist_time_input value on t_sim_input)
 tp_input = Slider(title="Sampling", value=0.010, start=0.005, end=1.000, step=0.005, format='0.000')
 t_sim_input = TextInput(title="Simulation time", value=str(100))
+sim2_toggle = Toggle(label="Toggle simulation 2", button_type='default')
 
 tp_input.on_change('value_throttled', tp_update)
 t_sim_input.on_change('value', t_sim_update)
 
 sim_tabs = []
 for tab in ["Simulation 1", "Simulation 2"]:
-    sim_dist_toggle = Toggle(label="Toggle disturbance", button_type='default')
+    # TODO: connect sim2_toggle button
+    sim_dist_toggle = Toggle(label="Toggle noise", button_type='default')
     dists = []
     for dimension in ['x', 'y']:
         """ disturbances widgets """
@@ -123,6 +125,7 @@ for tab in ["Simulation 1", "Simulation 2"]:
             column(sim_dist_type_input, sim_dist_time_input, sim_dist_lvl_input, sim_dist_freq_input,
                    sizing_mode='stretch_width'), sizing_mode='stretch_both'), title=dimension.upper() + " disturbance"))
 
+        # TODO: connect sim_dist_toggle button
         sim_dist_type_input.on_change('active', partial(callback_axis, name='set_noise_type', axis=dimension,
                                                         simulation=tab))
         sim_dist_time_input.on_change('value_throttled', partial(callback_axis, name='set_noise_period', axis=dimension,
@@ -135,6 +138,10 @@ for tab in ["Simulation 1", "Simulation 2"]:
     tabl = []
     for dimension in ['x', 'y']:
         """ table widgets """
+        g_acc_input = Select(title="Gravitational acceleration", value="Earth", options=["Sun", "Mercury", "Venus",
+                                                                                         "Earth", "Moon", "Mars",
+                                                                                         "Jupiter", "Saturn", "Uranus",
+                                                                                         "Neptune"])
         sim_starting_pos_input = Slider(title=dimension.upper() + " position", value=25.0, start=-100, end=100,
                                         step=0.5,
                                         format='0.0')
@@ -148,6 +155,7 @@ for tab in ["Simulation 1", "Simulation 2"]:
         tabl.append(column(sim_starting_pos_input, sim_starting_vel_input, sim_starting_ang_input,
                            sim_desired_pos_input, sizing_mode='stretch_width'))
 
+        # TODO: connect g_acc_input select list
         sim_starting_pos_input.on_change('value_throttled', partial(callback_axis, name='set_pos_init',
                                                                     axis=dimension, simulation=tab))
         sim_starting_vel_input.on_change('value_throttled', partial(callback_axis, name='set_speed_init',
@@ -169,6 +177,7 @@ for tab in ["Simulation 1", "Simulation 2"]:
 
     sim_servo_voltage_input = RangeSlider(title="Servo voltage", value=(-100, 100), start=-200, end=200, step=1)
 
+    # TODO: connect sim_pid_type_input button
     sim_kp_input.on_change('value_throttled', partial(callback, name='set_kp', simulation=tab))
     sim_ti_input.on_change('value_throttled', partial(callback, name='set_ti', simulation=tab))
     sim_td_input.on_change('value_throttled', partial(callback, name='set_td', simulation=tab))
@@ -177,22 +186,24 @@ for tab in ["Simulation 1", "Simulation 2"]:
     sim_servo_voltage_input.on_change('value_throttled', partial(voltage_update, simulation=tab))
 
     """ --- tabs --- """
+    table_tab = Panel(child=layout(column( g_acc_input, row(tabl)), sizing_mode='stretch_both'), title="Table")
+
     pid_tab = Panel(child=layout(column(sim_pid_type_input, sim_kp_input, sim_ti_input, sim_td_input,
                                         sizing_mode='stretch_width'), sizing_mode='stretch_both'), title="PID")
     servo_tab = Panel(child=layout(column(row(sim_servo_min_range_input, sim_servo_max_range_input,
                                               sizing_mode='stretch_width'), sim_servo_voltage_input,
                                           sizing_mode='stretch_width'), sizing_mode='stretch_width'), title="Servo")
-    table_tab = Panel(child=layout(row(tabl), sizing_mode='stretch_both'), title="Table")
+    noise_tab = Panel(child=layout(column(sim_dist_toggle, Tabs(tabs=dists), sizing_mode='stretch_width'), sizing_mode='stretch_width'), title="Noise")
 
-    sim_tab = Panel(child=layout(column(Tabs(tabs=[table_tab, pid_tab, servo_tab]), sim_dist_toggle, Tabs(tabs=dists)),
-                                 sizing_mode='stretch_both'), title=tab)
+    sim_tab = Panel(child=layout(Tabs(tabs=[table_tab, pid_tab, servo_tab, noise_tab]), sizing_mode='stretch_both'),
+                    title=tab)
 
     sim_tabs.append(sim_tab)
 tabs = Tabs(tabs=sim_tabs)
 
 
 """ --- plots --- """
-# TODO: add multiple plotlines to existing plots
+# TODO: add simulation 2 lines to existing plots
 """ XY position """
 xy_pos_plot = figure(title="table_position(x,y)", tools="pan,reset,save,wheel_zoom", x_range=[-100, 100],
                      y_range=[-100, 100])
@@ -227,7 +238,7 @@ y_ang_plot.sizing_mode = 'stretch_both'
 y_ang_plot.line('x', 'y', source=source_y_ang, line_width=3, line_alpha=0.6)
 
 curdoc().add_root(
-    row(column(row(tp_input, t_sim_input, sizing_mode='stretch_width'), tabs, sizing_mode='stretch_width'),
+    row(column(row(tp_input, t_sim_input, sizing_mode='stretch_width'), sim2_toggle, tabs, sizing_mode='stretch_width'),
         column(xy_pos_plot, row(column(x_pos_plot, x_vel_plot, x_ang_plot), column(y_pos_plot, y_vel_plot, y_ang_plot),
                                 sizing_mode='stretch_both'), sizing_mode='stretch_both'), sizing_mode='stretch_both'))
 curdoc().title = "Self-balancing table simulation"

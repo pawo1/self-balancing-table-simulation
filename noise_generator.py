@@ -1,6 +1,7 @@
 import math
 from dataclasses import dataclass
 
+# TODO: resolve ZeroDivisionError
 
 @dataclass
 class NoiseGenerator:
