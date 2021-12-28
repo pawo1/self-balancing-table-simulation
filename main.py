@@ -1,5 +1,4 @@
 import numpy as np
-
 import controller
 from bokeh.io import curdoc
 from bokeh.layouts import row, column, layout
@@ -17,7 +16,7 @@ Sim1 = controller.Controller()
 Sim1.run()
 Sim2 = controller.Controller()
 Sim2.run()
-x = np.linspace(0, int(60), int(int(60) / 0.01))
+x = np.linspace(0, int(t_sim), int(int(t_sim) / tp))
 
 """ data sources """
 source_xy_pos = ColumnDataSource(data=dict(x=Sim1.table.x.pos, y=Sim1.table.y.pos))
@@ -40,9 +39,11 @@ def t_sim_update(attr, old, new):
     t_sim = int(new)
     callback_global(attr, old, int(new), name='set_simulation_time')
 
+
 def voltage_update(attr, old, new, simulation):
     callback(attr, old, new[0], 'set_voltage_min', simulation)
     callback(attr, old, new[1], 'set_voltage_max', simulation)
+
 
 def callback_global(attr, old, new, name):
     callback(attr, old, new, name, "Simulation 1")
@@ -86,6 +87,7 @@ def update_plots():
     source_x_ang.data=dict(x=x, y=Sim1.table.x.angle)
     source_y_ang.data=dict(x=x, y=Sim1.table.y.angle)
 
+
 """ widgets """
 tp_input = Slider(title="Sampling", value=0.010, start=0.005, end=1.000, step=0.005, format='0.000')
 t_sim_input = TextInput(title="Simulation time", value=str(100))
@@ -101,8 +103,7 @@ for tab in ["Simulation 1", "Simulation 2"]:
 
     dists = []
     for dimension in ['x', 'y']:
-
-        sim_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=0)  #sim_dist_type_input.active = 0/1
+        sim_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=0)
         sim_dist_time_input = Slider(title="Disturbance duration", value=360, start=0, end=14400, step=1)
         sim_dist_lvl_input = Slider(title="Level", value=-1, start=-15, end=15, step=1)
         sim_dist_freq_input = Slider(title="Frequency", value=0.100, start=0.001, end=10, step=0.005, format='0.000')
@@ -112,7 +113,7 @@ for tab in ["Simulation 1", "Simulation 2"]:
                    sizing_mode='stretch_width'), sizing_mode='stretch_both'), title=dimension.upper()+" disturbance"))
 
         sim_dist_type_input.on_change('active', partial(callback_axis, name='set_noise_type', axis=dimension,
-                                                                 simulation=tab))
+                                                        simulation=tab))
         sim_dist_time_input.on_change('value_throttled', partial(callback_axis, name='set_noise_period', axis=dimension,
                                                                  simulation=tab))
         sim_dist_lvl_input.on_change('value_throttled', partial(callback_axis, name='set_noise_level', axis=dimension,
@@ -133,8 +134,6 @@ for tab in ["Simulation 1", "Simulation 2"]:
 
     sim_desired_x_pos_input = Slider(title="Desired X position", value=0, start=-100, end=100, step=0.5, format='0.0')
     sim_desired_y_pos_input = Slider(title="Desired Y position", value=0, start=-100, end=100, step=0.5, format='0.0')
-
-
 
     # --- PID
     sim_pid_type_input = RadioButtonGroup(labels=["Positional", "Incremental"], active=1)
@@ -172,13 +171,9 @@ for tab in ["Simulation 1", "Simulation 2"]:
     sim_desired_y_pos_input.on_change('value_throttled', partial(callback_axis, name='set_asked_value',
                                                                  axis='y', simulation=tab))
 
-
-
     """ tabs """
     sim_pid = Panel(child=layout(column(sim_pid_type_input, sim_kp_input, sim_ti_input, sim_td_input,
-                                        row(sim_servo_min_range_input, sim_servo_max_range_input,
-                                            sizing_mode='stretch_width'), sim_servo_voltage_input, sizing_mode='stretch_width'),
-                                 sizing_mode='stretch_both'), title="PID")
+                                        sizing_mode='stretch_width'), sizing_mode='stretch_both'), title="PID")
     sim_table = Panel(child=layout(
         column(row(sim_starting_x_pos_input, sim_starting_y_pos_input, sizing_mode='stretch_width'),
                sizing_mode='stretch_width'),
@@ -186,7 +181,11 @@ for tab in ["Simulation 1", "Simulation 2"]:
         row(sim_starting_x_ang_input, sim_starting_y_ang_input, sizing_mode='stretch_width'),
         column(sim_desired_x_pos_input, sim_desired_y_pos_input, sizing_mode='stretch_width'),
         sizing_mode='stretch_both'), title="Table")
-    sim_tabs = Tabs(tabs=[sim_table, sim_pid])
+
+    sim_servo = Panel(child=layout(column(row(sim_servo_min_range_input, sim_servo_max_range_input,
+                                          sizing_mode='stretch_width'), sim_servo_voltage_input,
+                                          sizing_mode='stretch_width'), sizing_mode='stretch_width'), title="Servo")
+    sim_tabs = Tabs(tabs=[sim_table, sim_pid, sim_servo])
 
     sim_tab = Panel(child=layout(column(sim_tabs, sim_dist_toggle, sim_dist_tabs), sizing_mode='stretch_both'),
                     title=tab)
@@ -197,7 +196,6 @@ for tab in ["Simulation 1", "Simulation 2"]:
 sim_tabs = Tabs(tabs=temp_tabs)
 
 # TODO: add multiple plotlines to existing plots
-
 
 
 """ plots """
