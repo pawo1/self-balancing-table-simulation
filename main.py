@@ -5,7 +5,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import row, column, layout
 from bokeh.models.widgets import Tabs, Panel
 from bokeh.models import ColumnDataSource, RadioButtonGroup, Toggle
-from bokeh.models.widgets import Slider, TextInput
+from bokeh.models.widgets import Slider, RangeSlider, TextInput
 from bokeh.plotting import figure
 from functools import partial
 
@@ -40,6 +40,9 @@ def t_sim_update(attr, old, new):
     t_sim = int(new)
     callback_global(attr, old, int(new), name='set_simulation_time')
 
+def voltage_update(attr, old, new, simulation):
+    callback(attr, old, new[0], 'set_voltage_min', simulation)
+    callback(attr, old, new[1], 'set_voltage_max', simulation)
 
 def callback_global(attr, old, new, name):
     callback(attr, old, new, name, "Simulation 1")
@@ -92,6 +95,32 @@ t_sim_input.on_change('value', t_sim_update)
 
 temp_tabs = []
 for tab in ["Simulation 1", "Simulation 2"]:
+
+    # --- Disturbances
+    sim_dist_toggle = Toggle(label="Toggle disturbance", button_type='default')
+
+    dists = []
+    for dimension in ['x', 'y']:
+
+        sim_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=0)  #sim_dist_type_input.active = 0/1
+        sim_dist_time_input = Slider(title="Disturbance duration", value=360, start=0, end=14400, step=1)
+        sim_dist_lvl_input = Slider(title="Level", value=-1, start=-15, end=15, step=1)
+        sim_dist_freq_input = Slider(title="Frequency", value=0.100, start=0.001, end=10, step=0.005, format='0.000')
+
+        dists.append(Panel(child=layout(
+            column(sim_dist_type_input, sim_dist_time_input, sim_dist_lvl_input, sim_dist_freq_input,
+                   sizing_mode='stretch_width'), sizing_mode='stretch_both'), title=dimension.upper()+" disturbance"))
+
+        sim_dist_type_input.on_change('active', partial(callback_axis, name='set_noise_type', axis=dimension,
+                                                                 simulation=tab))
+        sim_dist_time_input.on_change('value_throttled', partial(callback_axis, name='set_noise_period', axis=dimension,
+                                                                 simulation=tab))
+        sim_dist_lvl_input.on_change('value_throttled', partial(callback_axis, name='set_noise_level', axis=dimension,
+                                                                simulation=tab))
+        sim_dist_freq_input.on_change('value_throttled', partial(callback_axis, name='set_noise_frequency',
+                                                                 axis=dimension, simulation=tab))
+    sim_dist_tabs = Tabs(tabs=dists)
+
     # --- Table
     sim_starting_x_pos_input = Slider(title="X position", value=25.0, start=-100, end=100, step=0.5, format='0.0')
     sim_starting_y_pos_input = Slider(title="Y position", value=-75.0, start=-100, end=100, step=0.5, format='0.0')
@@ -105,6 +134,8 @@ for tab in ["Simulation 1", "Simulation 2"]:
     sim_desired_x_pos_input = Slider(title="Desired X position", value=0, start=-100, end=100, step=0.5, format='0.0')
     sim_desired_y_pos_input = Slider(title="Desired Y position", value=0, start=-100, end=100, step=0.5, format='0.0')
 
+
+
     # --- PID
     sim_pid_type_input = RadioButtonGroup(labels=["Positional", "Incremental"], active=1)
     sim_kp_input = Slider(title="Amplification", value=0.025, start=0.005, end=1.00, step=0.005, format='0.000')
@@ -115,26 +146,14 @@ for tab in ["Simulation 1", "Simulation 2"]:
     sim_servo_min_range_input = Slider(title="Servo minimal range", value=-15, start=-90, end=-1, step=1)
     sim_servo_max_range_input = Slider(title="Servo maximal range", value=15, start=1, end=90, step=1)
 
-    # --- Disturbances
-    sim_dist_toggle = Toggle(label="Toggle disturbance", button_type='default')
-
-    sim_x_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=0)
-    sim_y_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=0)
-
-    sim_x_dist_time_input = Slider(title="Disturbance duration", value=360, start=0, end=14400, step=1)
-    sim_y_dist_time_input = Slider(title="Disturbance duration", value=180, start=0, end=14400, step=1)
-
-    sim_x_dist_lvl_input = Slider(title="Level", value=-1, start=-15, end=15, step=1)
-    sim_y_dist_lvl_input = Slider(title="Level", value=2, start=-15, end=15, step=1)
-
-    sim_x_dist_freq_input = Slider(title="Frequency", value=0.100, start=0.001, end=10, step=0.005, format='0.000')
-    sim_y_dist_freq_input = Slider(title="Frequency", value=0.125, start=0.001, end=10, step=0.005, format='0.000')
+    sim_servo_voltage_input = RangeSlider(title="Servo voltage", value=(-100, 100), start=-200, end=200, step=1)
 
     sim_kp_input.on_change('value_throttled', partial(callback, name='set_kp', simulation=tab))
     sim_ti_input.on_change('value_throttled', partial(callback, name='set_ti', simulation=tab))
     sim_td_input.on_change('value_throttled', partial(callback, name='set_td', simulation=tab))
     sim_servo_min_range_input.on_change('value_throttled', partial(callback, name='set_angle_min', simulation=tab))
     sim_servo_max_range_input.on_change('value_throttled', partial(callback, name='set_angle_max', simulation=tab))
+    sim_servo_voltage_input.on_change('value_throttled',  partial(voltage_update, simulation=tab))
 
     sim_starting_x_pos_input.on_change('value_throttled', partial(callback_axis, name='set_pos_init',
                                                                   axis='x', simulation=tab))
@@ -158,7 +177,7 @@ for tab in ["Simulation 1", "Simulation 2"]:
     """ tabs """
     sim_pid = Panel(child=layout(column(sim_pid_type_input, sim_kp_input, sim_ti_input, sim_td_input,
                                         row(sim_servo_min_range_input, sim_servo_max_range_input,
-                                            sizing_mode='stretch_width'), sizing_mode='stretch_width'),
+                                            sizing_mode='stretch_width'), sim_servo_voltage_input, sizing_mode='stretch_width'),
                                  sizing_mode='stretch_both'), title="PID")
     sim_table = Panel(child=layout(
         column(row(sim_starting_x_pos_input, sim_starting_y_pos_input, sizing_mode='stretch_width'),
@@ -168,14 +187,6 @@ for tab in ["Simulation 1", "Simulation 2"]:
         column(sim_desired_x_pos_input, sim_desired_y_pos_input, sizing_mode='stretch_width'),
         sizing_mode='stretch_both'), title="Table")
     sim_tabs = Tabs(tabs=[sim_table, sim_pid])
-
-    sim_x_dist = Panel(child=layout(
-        column(sim_x_dist_type_input, sim_x_dist_time_input, sim_x_dist_lvl_input, sim_x_dist_freq_input,
-               sizing_mode='stretch_width'), sizing_mode='stretch_both'), title="X disturbance")
-    sim_y_dist = Panel(child=layout(
-        column(sim_y_dist_type_input, sim_y_dist_time_input, sim_y_dist_lvl_input, sim_y_dist_freq_input,
-               sizing_mode='stretch_width'), sizing_mode='stretch_both'), title="Y disturbance")
-    sim_dist_tabs = Tabs(tabs=[sim_x_dist, sim_y_dist])
 
     sim_tab = Panel(child=layout(column(sim_tabs, sim_dist_toggle, sim_dist_tabs), sizing_mode='stretch_both'),
                     title=tab)
