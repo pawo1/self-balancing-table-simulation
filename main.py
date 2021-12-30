@@ -23,14 +23,21 @@ x = np.linspace(0, int(t_sim), int(int(t_sim) / tp))
 
 
 """ --- data sources --- """
-source_xy_pos = ColumnDataSource(data=dict(x=Sim1.table.x.pos, y=Sim1.table.y.pos))
-source_x_pos = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
-source_y_pos = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
-source_x_vel = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
-source_y_vel = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
-source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
-source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
+sim1_source_xy_pos = ColumnDataSource(data=dict(x=Sim1.table.x.pos, y=Sim1.table.y.pos))
+sim1_source_x_pos = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
+sim1_source_y_pos = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
+sim1_source_x_vel = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
+sim1_source_y_vel = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
+sim1_source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
+sim1_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
 
+sim2_source_xy_pos = ColumnDataSource(data=dict(x=Sim2.table.x.pos, y=Sim2.table.y.pos))
+sim2_source_x_pos = ColumnDataSource(data=dict(x=x, y=Sim2.table.x.pos))
+sim2_source_y_pos = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.pos))
+sim2_source_x_vel = ColumnDataSource(data=dict(x=x, y=Sim2.table.x.pos))
+sim2_source_y_vel = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.pos))
+sim2_source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.x.pos))
+sim2_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.pos))
 
 """ --- callbacks --- """
 
@@ -90,13 +97,21 @@ def update_plots():
     x = np.linspace(0, int(t_sim), int(int(t_sim) / tp))
 
     """ --- data sources --- """
-    source_xy_pos.data = dict(x=Sim1.table.x.pos, y=Sim1.table.y.pos)
-    source_x_pos.data = dict(x=x, y=Sim1.table.x.pos)
-    source_y_pos.data = dict(x=x, y=Sim1.table.y.pos)
-    source_x_vel.data = dict(x=x, y=Sim1.table.x.speed)
-    source_y_vel.data = dict(x=x, y=Sim1.table.y.speed)
-    source_x_ang.data = dict(x=x, y=Sim1.table.x.angle)
-    source_y_ang.data = dict(x=x, y=Sim1.table.y.angle)
+    sim1_source_xy_pos.data = dict(x=Sim1.table.x.pos, y=Sim1.table.y.pos)
+    sim1_source_x_pos.data = dict(x=x, y=Sim1.table.x.pos)
+    sim1_source_y_pos.data = dict(x=x, y=Sim1.table.y.pos)
+    sim1_source_x_vel.data = dict(x=x, y=Sim1.table.x.speed)
+    sim1_source_y_vel.data = dict(x=x, y=Sim1.table.y.speed)
+    sim1_source_x_ang.data = dict(x=x, y=Sim1.table.x.angle)
+    sim1_source_y_ang.data = dict(x=x, y=Sim1.table.y.angle)
+
+    sim2_source_xy_pos.data = dict(x=Sim2.table.x.pos, y=Sim2.table.y.pos)
+    sim2_source_x_pos.data = dict(x=x, y=Sim2.table.x.pos)
+    sim2_source_y_pos.data = dict(x=x, y=Sim2.table.y.pos)
+    sim2_source_x_vel.data = dict(x=x, y=Sim2.table.x.pos)
+    sim2_source_y_vel.data = dict(x=x, y=Sim2.table.y.pos)
+    sim2_source_x_ang.data = dict(x=x, y=Sim2.table.x.pos)
+    sim2_source_y_ang.data = dict(x=x, y=Sim2.table.y.pos)
 
 
 """ --- widgets --- """
@@ -203,42 +218,50 @@ tabs = Tabs(tabs=sim_tabs)
 
 
 """ --- plots --- """
-# TODO: add simulation 2 lines to existing plots
 """ XY position """
 xy_pos_plot = figure(title="table_position(x,y)", tools="pan,reset,save,wheel_zoom", x_range=[-100, 100],
                      y_range=[-100, 100])
 xy_pos_plot.sizing_mode = 'stretch_both'
-xy_pos_plot.line('x', 'y', source=source_xy_pos)
+xy_pos_plot.line('x', 'y', source=sim1_source_xy_pos)
+xy_pos_plot.line('x', 'y', source=sim2_source_xy_pos, color="orange")
 
 """ position """
 x_pos_plot = figure(title="pos_x(t)", tools="pan,reset,save,wheel_zoom")
 x_pos_plot.sizing_mode = 'stretch_both'
-x_pos_plot.line('x', 'y', source=source_x_pos, line_width=3, line_alpha=0.6)
+x_pos_plot.line('x', 'y', source=sim1_source_x_pos, line_width=3, line_alpha=0.6)
+x_pos_plot.line('x', 'y', source=sim2_source_x_pos, line_width=3, line_alpha=0.6, color="orange")
 
 y_pos_plot = figure(title="pos_y(t)", tools="pan,reset,save,wheel_zoom")
 y_pos_plot.sizing_mode = 'stretch_both'
-y_pos_plot.line('x', 'y', source=source_y_pos, line_width=3, line_alpha=0.6)
+y_pos_plot.line('x', 'y', source=sim1_source_y_pos, line_width=3, line_alpha=0.6)
+y_pos_plot.line('x', 'y', source=sim2_source_y_pos, line_width=3, line_alpha=0.6, color="orange")
 
 """ velocity """
 x_vel_plot = figure(title="speed_x(t)", tools="pan,reset,save,wheel_zoom")
 x_vel_plot.sizing_mode = 'stretch_both'
-x_vel_plot.line('x', 'y', source=source_x_vel, line_width=3, line_alpha=0.6)
+x_vel_plot.line('x', 'y', source=sim1_source_x_vel, line_width=3, line_alpha=0.6)
+x_vel_plot.line('x', 'y', source=sim2_source_x_vel, line_width=3, line_alpha=0.6, color="orange")
 
 y_vel_plot = figure(title="speed_y(t)", tools="pan,reset,save,wheel_zoom")
 y_vel_plot.sizing_mode = 'stretch_both'
-y_vel_plot.line('x', 'y', source=source_y_vel, line_width=3, line_alpha=0.6)
+y_vel_plot.line('x', 'y', source=sim1_source_y_vel, line_width=3, line_alpha=0.6)
+y_vel_plot.line('x', 'y', source=sim2_source_y_vel, line_width=3, line_alpha=0.6, color="orange")
 
 """ angle """
 x_ang_plot = figure(title="angle_x(t)", tools="pan,reset,save,wheel_zoom")
 x_ang_plot.sizing_mode = 'stretch_both'
-x_ang_plot.line('x', 'y', source=source_x_ang, line_width=3, line_alpha=0.6)
+x_ang_plot.line('x', 'y', source=sim1_source_x_ang, line_width=3, line_alpha=0.6)
+x_ang_plot.line('x', 'y', source=sim2_source_x_ang, line_width=3, line_alpha=0.6, color="orange")
 
 y_ang_plot = figure(title="angle_y(t)", tools="pan,reset,save,wheel_zoom")
 y_ang_plot.sizing_mode = 'stretch_both'
-y_ang_plot.line('x', 'y', source=source_y_ang, line_width=3, line_alpha=0.6)
+y_ang_plot.line('x', 'y', source=sim1_source_y_ang, line_width=3, line_alpha=0.6)
+y_ang_plot.line('x', 'y', source=sim2_source_y_ang, line_width=3, line_alpha=0.6, color="orange")
 
 curdoc().add_root(
     row(column(row(tp_input, t_sim_input, sizing_mode='stretch_width'), sim2_toggle, tabs, sizing_mode='stretch_width'),
         column(xy_pos_plot, row(column(x_pos_plot, x_vel_plot, x_ang_plot), column(y_pos_plot, y_vel_plot, y_ang_plot),
                                 sizing_mode='stretch_both'), sizing_mode='stretch_both'), sizing_mode='stretch_both'))
+
 curdoc().title = "Self-balancing table simulation"
+
