@@ -114,6 +114,7 @@ for tab in ["Simulation 1", "Simulation 2"]:
     # TODO: connect sim2_toggle button
     sim_dist_toggle = Toggle(label="Toggle noise", button_type='default')
     dists = []
+    tabl = []
     for dimension in ['x', 'y']:
         """ disturbances widgets """
         sim_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=0)
@@ -134,14 +135,12 @@ for tab in ["Simulation 1", "Simulation 2"]:
                                                                 simulation=tab))
         sim_dist_freq_input.on_change('value_throttled', partial(callback_axis, name='set_noise_frequency',
                                                                  axis=dimension, simulation=tab))
-
-    tabl = []
-    for dimension in ['x', 'y']:
         """ table widgets """
-        g_acc_input = Select(title="Gravitational acceleration", value="Earth", options=["Sun", "Mercury", "Venus",
-                                                                                         "Earth", "Moon", "Mars",
-                                                                                         "Jupiter", "Saturn", "Uranus",
-                                                                                         "Neptune"])
+        g_acc_input = Select(title="Gravitational acceleration [m/s^2]", value="Earth (9,81)",
+                             options=["Sun (273,95)", "Mercury (3,7)", "Venus (8,9)",
+                                      "Earth (9,81)", "Moon (1,62)", "Mars (3,7)",
+                                      "Jupiter (23,1)", "Saturn (9,0)", "Uranus (8,7)",
+                                      "Neptune (11,0)"])
         sim_starting_pos_input = Slider(title=dimension.upper() + " position", value=25.0, start=-100, end=100,
                                         step=0.5,
                                         format='0.0')
@@ -186,14 +185,15 @@ for tab in ["Simulation 1", "Simulation 2"]:
     sim_servo_voltage_input.on_change('value_throttled', partial(voltage_update, simulation=tab))
 
     """ --- tabs --- """
-    table_tab = Panel(child=layout(column( g_acc_input, row(tabl)), sizing_mode='stretch_both'), title="Table")
+    table_tab = Panel(child=layout(column(g_acc_input, row(tabl)), sizing_mode='stretch_both'), title="Table")
 
     pid_tab = Panel(child=layout(column(sim_pid_type_input, sim_kp_input, sim_ti_input, sim_td_input,
                                         sizing_mode='stretch_width'), sizing_mode='stretch_both'), title="PID")
     servo_tab = Panel(child=layout(column(row(sim_servo_min_range_input, sim_servo_max_range_input,
                                               sizing_mode='stretch_width'), sim_servo_voltage_input,
                                           sizing_mode='stretch_width'), sizing_mode='stretch_width'), title="Servo")
-    noise_tab = Panel(child=layout(column(sim_dist_toggle, Tabs(tabs=dists), sizing_mode='stretch_width'), sizing_mode='stretch_width'), title="Noise")
+    noise_tab = Panel(child=layout(column(sim_dist_toggle, Tabs(tabs=dists), sizing_mode='stretch_width'),
+                                   sizing_mode='stretch_width'), title="Noise")
 
     sim_tab = Panel(child=layout(Tabs(tabs=[table_tab, pid_tab, servo_tab, noise_tab]), sizing_mode='stretch_both'),
                     title=tab)
