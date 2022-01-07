@@ -87,5 +87,8 @@ class Dimension:
     def set_noise_type(self, noise_type: int):
         self.noise_gen.set_noise_type(noise_type)
 
+    def set_noise_active(self, noise_active: bool):
+        self.noise_gen.set_noise_active(noise_active)
+
     def set_tp(self, tp: float):
         self.noise_gen.set_tp(tp)

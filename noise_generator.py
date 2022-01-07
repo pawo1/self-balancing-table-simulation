@@ -1,7 +1,6 @@
 import math
 from dataclasses import dataclass
 
-# TODO: resolve ZeroDivisionError
 
 @dataclass
 class NoiseGenerator:
@@ -10,9 +9,11 @@ class NoiseGenerator:
     _noise_level: float = 0
     _noise_type: int = 0
     _tp: float = 0.01
+    _noise_active: bool = False
 
     def noise(self, n):
-        if self._noise_period < n or self._noise_period == 0:
+        if self._noise_active is False or self._noise_period < n or self._noise_period == 0 \
+                or self._noise_frequency == 0:
             return 0
 
         if self._noise_type == 0:
@@ -42,6 +43,9 @@ class NoiseGenerator:
 
     def set_noise_type(self, noise_type: int):
         self._noise_type = noise_type
+
+    def set_noise_active(self, noise_active: bool):
+        self._noise_active = noise_active
 
     def set_tp(self, tp: float):
         self._tp = tp
