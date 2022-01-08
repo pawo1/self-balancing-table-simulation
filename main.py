@@ -8,9 +8,12 @@ from bokeh.models.widgets import Slider, RangeSlider, TextInput
 from bokeh.plotting import figure
 from functools import partial
 
-
 """ --- resources for dynamic access to document elements --- """
 lines = ['xy', 'x_pos', 'y_pos', 'x_vel', 'y_vel', 'x_ang', 'y_ang']
+accelerations = {"Sun (273.95)": 273.95, "Mercury (3.7)": 3.7, "Venus (8.9)": 8.9, "Earth (9.81)": 9.81,
+                 "Moon (1.62)": 1.62, "Mars (3.7)": 3.7,
+                 "Jupiter (23.1)": 23.1, "Saturn (9.0)": 9.0, "Uranus (8.7)": 8.7,
+                 "Neptune (11.0)": 11.0}
 
 """ --- initial simulation --- """
 # TODO: initial simulation values should be the same values displaying by the widgets
@@ -53,7 +56,7 @@ def t_sim_update(attr, old, new):
 def sim_update(attr, old, new, simulation):
     """ simulation toggle callback """
     for name in lines:
-        line = curdoc().get_model_by_name(name+'_'+simulation)
+        line = curdoc().get_model_by_name(name + '_' + simulation)
         line.visible = new
     update_plots()
 
@@ -62,6 +65,10 @@ def voltage_update(attr, old, new, simulation):
     """ servo voltage callback """
     callback(attr, old, new[0], 'set_voltage_min', simulation)
     callback(attr, old, new[1], 'set_voltage_max', simulation)
+
+
+def callback_g_acc(attr, old, new, simulation):
+    callback(attr, accelerations[old], accelerations[new], 'set_acceleration', simulation)
 
 
 def callback_global(attr, old, new, name):
@@ -157,11 +164,11 @@ for tab in ["Simulation 1", "Simulation 2"]:
         sim_dist_freq_input.on_change('value_throttled', partial(callback_axis, name='set_noise_frequency',
                                                                  axis=dimension, simulation=tab))
         """ table widgets """
-        g_acc_input = Select(title="Gravitational acceleration [m/s^2]", value="Earth (9,81)",
-                             options=["Sun (273,95)", "Mercury (3,7)", "Venus (8,9)",
-                                      "Earth (9,81)", "Moon (1,62)", "Mars (3,7)",
-                                      "Jupiter (23,1)", "Saturn (9,0)", "Uranus (8,7)",
-                                      "Neptune (11,0)"])
+        g_acc_input = Select(title="Gravitational acceleration [m/s^2]", value="Earth (9.81)",
+                             options=["Sun (273.95)", "Mercury (3.7)", "Venus (8.9)",
+                                      "Earth (9.81)", "Moon (1.62)", "Mars (3.7)",
+                                      "Jupiter (23.1)", "Saturn (9.0)", "Uranus (8.7)",
+                                      "Neptune (11.0)"])
         sim_starting_pos_input = Slider(title=dimension.upper() + " position", value=25.0, start=-100, end=100,
                                         step=0.5,
                                         format='0.0')
@@ -175,7 +182,8 @@ for tab in ["Simulation 1", "Simulation 2"]:
         tabl.append(column(sim_starting_pos_input, sim_starting_vel_input, sim_starting_ang_input,
                            sim_desired_pos_input, sizing_mode='stretch_width'))
 
-        # TODO: connect g_acc_input select list
+        g_acc_input.on_change('value', partial(callback_g_acc, simulation=tab))
+
         sim_starting_pos_input.on_change('value_throttled', partial(callback_axis, name='set_pos_init',
                                                                     axis=dimension, simulation=tab))
         sim_starting_vel_input.on_change('value_throttled', partial(callback_axis, name='set_speed_init',
@@ -221,7 +229,6 @@ for tab in ["Simulation 1", "Simulation 2"]:
 
     sim_tabs.append(sim_tab)
 tabs = Tabs(tabs=sim_tabs)
-
 
 """ --- plots --- """
 """ XY position """
