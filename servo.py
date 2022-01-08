@@ -11,12 +11,17 @@ class Servo:
     _voltage_max: float = 10.0
 
     # calculate angle based on signal voltage and rotate servo
-    # TODO: rotation = ax + b , ax only now
+    # using range conversion formula
     def rotate(self, signal):
+        voltage_range = self._voltage_max - self._voltage_min
+        if voltage_range == 0:
+            return self._angle_min
 
-        a = (self._angle_max - self._angle_min)/(self._voltage_max-self._voltage_min)
+        angle_range = self._angle_max - self._angle_min
 
-        return a * signal
+        angle_signal = (((signal - self._voltage_min) * angle_range) / voltage_range) + self._angle_min
+
+        return min(max(angle_signal, self._angle_min), self._angle_max)
 
     def set_angle_min(self, angle_min: float):
         self._angle_min = angle_min

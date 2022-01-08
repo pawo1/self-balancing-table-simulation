@@ -8,6 +8,9 @@ from bokeh.models.widgets import Slider, RangeSlider, TextInput
 from bokeh.plotting import figure
 from functools import partial
 
+# TODO: delegate controller to backend folder
+# TODO: add Favicon, and title poster on main page
+
 """ --- resources for dynamic access to document elements --- """
 lines = ['xy', 'x_pos', 'y_pos', 'x_vel', 'y_vel', 'x_ang', 'y_ang']
 accelerations = {"Sun (273.95)": 273.95, "Mercury (3.7)": 3.7, "Venus (8.9)": 8.9, "Earth (9.81)": 9.81,
@@ -63,8 +66,17 @@ def sim_update(attr, old, new, simulation):
 
 def voltage_update(attr, old, new, simulation):
     """ servo voltage callback """
-    callback(attr, old, new[0], 'set_voltage_min', simulation)
-    callback(attr, old, new[1], 'set_voltage_max', simulation)
+
+# we don't use standard callback for min and max values to update plots only once
+    if simulation == "Simulation 1":
+        Sim1.set_property('set_voltage_min', new[0])
+        Sim1.set_property('set_voltage_max', new[1])
+        Sim1.run()
+    elif simulation == "Simulation 2":
+        Sim2.set_property('set_voltage_min', new[0])
+        Sim2.set_property('set_voltage_max', new[1])
+        Sim2.run()
+    update_plots()
 
 
 def callback_g_acc(attr, old, new, simulation):

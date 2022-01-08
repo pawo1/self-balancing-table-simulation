@@ -33,6 +33,7 @@ class Dimension:
         self._angle = [self._angle_init]
 
     def simulate_position(self, angle):
+        # TODO: fix simulation formula and adjust to table in cm instead meters
         angle += self.noise_gen.noise(len(self._pos) - 1)
         angle = max(min(self._angle_max, angle), self._angle_min)
         actual_speed = self._g * math.sin(math.radians(angle))
