@@ -51,12 +51,51 @@ sim2_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.angle))
 
 def tp_update(attr, old, new):
     """ simulation sampling callback """
+    for _tab in ["Simulation 1", "Simulation 2"]:
+        for _dimension in ['x', 'y']:
+            model = curdoc().get_model_by_name(_tab+'_noise_freq_'+_dimension)
+            model.update(end=1/new)
+            if model.value > 1/new:
+                model.trigger('value', model.value, 1/new)
+            model = curdoc().get_model_by_name(_tab+'_noise_time_'+_dimension)
+            model.update(start=new)
+            if model.value < new:
+                model.trigger('value', model.value, new)
+
     callback_global(attr, old, new, name='set_tp')
 
 
 def t_sim_update(attr, old, new):
     """ simulation time callback """
+    print(attr)
+
+    for _tab in ["Simulation 1", "Simulation 2"]:
+        for dim in ['x', 'y']:
+            model = curdoc().get_model_by_name(_tab+'_noise_freq_'+dim)
+            model.update(start=float(1/float(new)))
+            if model.value > int(new):
+                model.trigger('value', model.value, int(new))
+            model = curdoc().get_model_by_name(_tab+'_noise_time_'+dim)
+            model.update(end=int(new))
+            if model.value < int(new):
+                model.trigger('value', model.value, int(new))
+
     callback_global(attr, old, int(new), name='set_simulation_time')
+
+
+def change_angle_min(attr, old, new, simulation):
+    for dim in ['x', 'y']:
+        model = curdoc().get_model_by_name(simulation+'_dist_lvl_'+dim)
+        model.update(start=new)
+        if model.value < new:
+            model.trigger('value', model.value, new)
+
+def change_angle_max(attr, old, new, simulation):
+    for dim in ['x', 'y']:
+        model = curdoc().get_model_by_name(simulation+'_dist_lvl_'+dim)
+        model.update(end=new)
+        if model.value > new:
+            model.trigger('value', model.value, new)
 
 
 def sim_update(attr, old, new, simulation):
@@ -96,7 +135,7 @@ def callback_axis(attr, old, new, name, axis, simulation):
     """ axis callback for specific simulation passed as argument """
 
     if name in conversion:
-        new = float(new/100) # conversion from [m] to [cm]
+        new = float(new/100)  # conversion from [m] to [cm]
 
     if simulation == "Simulation 1":
         Sim1.set_property_axis(name, axis, new)
@@ -125,36 +164,34 @@ def update_plots():
     x = np.linspace(0, int(t_sim_input.value), int(int(t_sim_input.value) / tp_input.value))
 
     """ --- data sources --- """
-    if sim1_toggle.active is True:
-        sim1_source_xy_pos.data = dict(x=[element * 100 for element in Sim1.table.x.pos],
-                                       y=[element * 100 for element in Sim1.table.y.pos])
-        sim1_source_x_pos.data = dict(x=x, y=[element * 100 for element in Sim1.table.x.pos])
-        sim1_source_y_pos.data = dict(x=x, y=[element * 100 for element in Sim1.table.y.pos])
-        sim1_source_x_vel.data = dict(x=x, y=[element * 100 for element in Sim1.table.x.speed])
-        sim1_source_y_vel.data = dict(x=x, y=[element * 100 for element in Sim1.table.y.speed])
-        sim1_source_x_ang.data = dict(x=x, y=Sim1.table.x.angle)
-        sim1_source_y_ang.data = dict(x=x, y=Sim1.table.y.angle)
+#    if sim1_toggle.active is True:
+    sim1_source_xy_pos.data = dict(x=[element * 100 for element in Sim1.table.x.pos],
+                                   y=[element * 100 for element in Sim1.table.y.pos])
+    sim1_source_x_pos.data = dict(x=x, y=[element * 100 for element in Sim1.table.x.pos])
+    sim1_source_y_pos.data = dict(x=x, y=[element * 100 for element in Sim1.table.y.pos])
+    sim1_source_x_vel.data = dict(x=x, y=[element * 100 for element in Sim1.table.x.speed])
+    sim1_source_y_vel.data = dict(x=x, y=[element * 100 for element in Sim1.table.y.speed])
+    sim1_source_x_ang.data = dict(x=x, y=Sim1.table.x.angle)
+    sim1_source_y_ang.data = dict(x=x, y=Sim1.table.y.angle)
 
-    if sim2_toggle.active is True:
-        sim2_source_xy_pos.data = dict(x=[element * 100 for element in Sim2.table.x.pos],
-                                       y=[element * 100 for element in Sim2.table.y.pos])
-        sim2_source_x_pos.data = dict(x=x, y=[element * 100 for element in Sim2.table.x.pos])
-        sim2_source_y_pos.data = dict(x=x, y=[element * 100 for element in Sim2.table.y.pos])
-        sim2_source_x_vel.data = dict(x=x, y=[element * 100 for element in Sim2.table.x.speed])
-        sim2_source_y_vel.data = dict(x=x, y=[element * 100 for element in Sim2.table.y.speed])
-        sim2_source_x_ang.data = dict(x=x, y=Sim2.table.x.angle)
-        sim2_source_y_ang.data = dict(x=x, y=Sim2.table.y.angle)
+#    if sim2_toggle.active is True:
+    sim2_source_xy_pos.data = dict(x=[element * 100 for element in Sim2.table.x.pos],
+                                   y=[element * 100 for element in Sim2.table.y.pos])
+    sim2_source_x_pos.data = dict(x=x, y=[element * 100 for element in Sim2.table.x.pos])
+    sim2_source_y_pos.data = dict(x=x, y=[element * 100 for element in Sim2.table.y.pos])
+    sim2_source_x_vel.data = dict(x=x, y=[element * 100 for element in Sim2.table.x.speed])
+    sim2_source_y_vel.data = dict(x=x, y=[element * 100 for element in Sim2.table.y.speed])
+    sim2_source_x_ang.data = dict(x=x, y=Sim2.table.x.angle)
+    sim2_source_y_ang.data = dict(x=x, y=Sim2.table.y.angle)
 
 
 """ --- widgets --- """
-# TODO: widgets range should be connected to each other and update on change of different input
-#  (i.e. max sim_dist_time_input value on t_sim_input)
 tp_input = Slider(title="Sampling [s]", value=0.010, start=0.005, end=1.000, step=0.005, format='0.000', id='tp_input')
 t_sim_input = TextInput(title="Simulation time [s]", value=str(60), id='tp_sim_input')
 sim1_toggle = Toggle(label="Toggle simulation 1", active=True)
 sim2_toggle = Toggle(label="Toggle simulation 2")
 
-tp_input.on_change('value_throttled', partial(callback_global, name='set_tp'))
+tp_input.on_change('value_throttled', tp_update)
 t_sim_input.on_change('value', t_sim_update)
 sim1_toggle.on_change('active', partial(sim_update, simulation='simulation_1'))
 sim2_toggle.on_change('active', partial(sim_update, simulation='simulation_2'))
@@ -168,9 +205,11 @@ for tab in ["Simulation 1", "Simulation 2"]:
     for dimension in ['x', 'y']:
         """ disturbances widgets """
         sim_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=0)
-        sim_dist_time_input = Slider(title="Disturbance duration", value=360, start=0, end=14400, step=1)
-        sim_dist_lvl_input = Slider(title="Level", value=-1, start=-15, end=15, step=1)
-        sim_dist_freq_input = Slider(title="Frequency", value=0.100, start=0.001, end=10, step=0.005, format='0.000')
+        sim_dist_time_input = Slider(title="Disturbance duration", value=360, start=0, end=14400, step=1,
+                                     name=tab+'_noise_time_'+dimension)
+        sim_dist_lvl_input = Slider(title="Level", value=-1, start=-15, end=15, step=1, name=tab+'_dist_lvl_'+dimension)
+        sim_dist_freq_input = Slider(title="Frequency", value=0.100, start=0.001, end=10, step=0.005, format='0.000',
+                                     name=tab+'_noise_freq_'+dimension)
 
         dists.append(Panel(child=layout(
             column(sim_dist_type_input, sim_dist_time_input, sim_dist_lvl_input, sim_dist_freq_input,
@@ -193,12 +232,12 @@ for tab in ["Simulation 1", "Simulation 2"]:
         sim_starting_pos_input = Slider(title=dimension.upper() + " position [cm]", value=25.0, start=-100, end=100,
                                         step=0.5,
                                         format='0.0')
-        sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [m/s]", value=-1, start=-30, end=30, step=0.5,
-                                        format='0.0')
-        sim_starting_ang_input = Slider(title=dimension.upper() + " angle [degree]", value=2.0, start=-90, end=90, step=0.5,
-                                        format='0.0')
-        sim_desired_pos_input = Slider(title="Desired " + dimension.upper() + " position [cm]", value=0, start=-100, end=100,
-                                       step=0.5, format='0.0')
+        sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [m/s]", value=-1, start=-30, end=30,
+                                        step=0.5, format='0.0')
+        sim_starting_ang_input = Slider(title=dimension.upper() + " angle [degree]", value=2.0, start=-90, end=90,
+                                        step=0.5, format='0.0')
+        sim_desired_pos_input = Slider(title="Desired " + dimension.upper() + " position [cm]", value=0, start=-100,
+                                       end=100, step=0.5, format='0.0')
 
         tabl.append(column(sim_starting_pos_input, sim_starting_vel_input, sim_starting_ang_input,
                            sim_desired_pos_input, sizing_mode='stretch_width'))
@@ -230,8 +269,10 @@ for tab in ["Simulation 1", "Simulation 2"]:
     sim_kp_input.on_change('value_throttled', partial(callback, name='set_kp', simulation=tab))
     sim_ti_input.on_change('value_throttled', partial(callback, name='set_ti', simulation=tab))
     sim_td_input.on_change('value_throttled', partial(callback, name='set_td', simulation=tab))
-    sim_servo_min_range_input.on_change('value_throttled', partial(callback, name='set_angle_min', simulation=tab))
-    sim_servo_max_range_input.on_change('value_throttled', partial(callback, name='set_angle_max', simulation=tab))
+    sim_servo_min_range_input.on_change('value_throttled', partial(callback, name='set_angle_min', simulation=tab),
+                                        partial(change_angle_min, simulation=tab))
+    sim_servo_max_range_input.on_change('value_throttled', partial(callback, name='set_angle_max', simulation=tab),
+                                        partial(change_angle_max, simulation=tab))
     sim_servo_voltage_input.on_change('value_throttled', partial(voltage_update, simulation=tab))
 
     """ --- tabs --- """
@@ -256,43 +297,45 @@ tabs = Tabs(tabs=sim_tabs)
 xy_pos_plot = figure(title="Position on Table (x, y)[cm x cm]", tools="pan,reset,save,wheel_zoom", x_range=[-100, 100],
                      y_range=[-100, 100])
 xy_pos_plot.sizing_mode = 'stretch_both'
-xy_pos_plot.line('x', 'y', source=sim1_source_xy_pos, name='xy_simulation_1')
-xy_pos_plot.line('x', 'y', source=sim2_source_xy_pos, name='xy_simulation_2', color="orange")
+xy_pos_plot.line('x', 'y', source=sim1_source_xy_pos, legend_label='Simulation 1', name='xy_simulation_1')
+xy_pos_plot.line('x', 'y', source=sim2_source_xy_pos, legend_label='Simulation 2', name='xy_simulation_2',
+                 color="orange")
+xy_pos_plot.legend.location = 'top_right'
 
 """ position """
-x_pos_plot = figure(title="pos_x(t)", tools="pan,reset,save,wheel_zoom")
+x_pos_plot = figure(title="Position X dimension [cm]", tools="pan,reset,save,wheel_zoom")
 x_pos_plot.sizing_mode = 'stretch_both'
 x_pos_plot.line('x', 'y', source=sim1_source_x_pos, line_width=3, line_alpha=0.6, name='x_pos_simulation_1')
 x_pos_plot.line('x', 'y', source=sim2_source_x_pos, line_width=3, line_alpha=0.6, name='x_pos_simulation_2',
                 color="orange")
 
-y_pos_plot = figure(title="pos_y(t)", tools="pan,reset,save,wheel_zoom")
+y_pos_plot = figure(title="Position Y dimension [cm]", tools="pan,reset,save,wheel_zoom")
 y_pos_plot.sizing_mode = 'stretch_both'
 y_pos_plot.line('x', 'y', source=sim1_source_y_pos, line_width=3, line_alpha=0.6, name='y_pos_simulation_1')
 y_pos_plot.line('x', 'y', source=sim2_source_y_pos, line_width=3, line_alpha=0.6, name='y_pos_simulation_2',
                 color="orange")
 
 """ velocity """
-x_vel_plot = figure(title="speed_x(t)", tools="pan,reset,save,wheel_zoom")
+x_vel_plot = figure(title="Speed X dimension [cm/s]", tools="pan,reset,save,wheel_zoom")
 x_vel_plot.sizing_mode = 'stretch_both'
 x_vel_plot.line('x', 'y', source=sim1_source_x_vel, line_width=3, line_alpha=0.6, name='x_vel_simulation_1')
 x_vel_plot.line('x', 'y', source=sim2_source_x_vel, line_width=3, line_alpha=0.6, name='x_vel_simulation_2',
                 color="orange")
 
-y_vel_plot = figure(title="speed_y(t)", tools="pan,reset,save,wheel_zoom")
+y_vel_plot = figure(title="Speed Y dimension [cm/s]", tools="pan,reset,save,wheel_zoom")
 y_vel_plot.sizing_mode = 'stretch_both'
 y_vel_plot.line('x', 'y', source=sim1_source_y_vel, line_width=3, line_alpha=0.6, name='y_vel_simulation_1')
 y_vel_plot.line('x', 'y', source=sim2_source_y_vel, line_width=3, line_alpha=0.6, name='y_vel_simulation_2',
                 color="orange")
 
 """ angle """
-x_ang_plot = figure(title="angle_x(t)", tools="pan,reset,save,wheel_zoom")
+x_ang_plot = figure(title="Angle X dimension [degree]", tools="pan,reset,save,wheel_zoom")
 x_ang_plot.sizing_mode = 'stretch_both'
 x_ang_plot.line('x', 'y', source=sim1_source_x_ang, line_width=3, line_alpha=0.6, name='x_ang_simulation_1')
 x_ang_plot.line('x', 'y', source=sim2_source_x_ang, line_width=3, line_alpha=0.6, name='x_ang_simulation_2',
                 color="orange")
 
-y_ang_plot = figure(title="angle_y(t)", tools="pan,reset,save,wheel_zoom")
+y_ang_plot = figure(title="Angle Y dimension [degree]", tools="pan,reset,save,wheel_zoom")
 y_ang_plot.sizing_mode = 'stretch_both'
 y_ang_plot.line('x', 'y', source=sim1_source_y_ang, line_width=3, line_alpha=0.6, name='y_ang_simulation_1')
 y_ang_plot.line('x', 'y', source=sim2_source_y_ang, line_width=3, line_alpha=0.6, name='y_ang_simulation_2',
