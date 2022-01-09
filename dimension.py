@@ -10,14 +10,17 @@ class Dimension:
     _g: float = 9.81
     _angle_min: float = -30.0
     _angle_max: float = 30.0
+    _tp: float = 0.01
 
-    def __init__(self, pos_init: float = 0.0, speed_init: float = 0.0, angle_init: float = 0.0, g: float = 9.81):
+    def __init__(self, pos_init: float = 0.0, speed_init: float = 0.0, angle_init: float = 0.0, g: float = 9.81,
+                 tp: float = 0.01):
         # initial values are kept in memory for reset purposes
         self._pos_init = pos_init
         self._speed_init = speed_init
         self._angle_init = angle_init
 
         self._g = g
+        self._tp = tp
         self._pos = [self._pos_init]
         self._speed = [self._speed_init]
         self._angle = [self._angle_init]
@@ -33,10 +36,9 @@ class Dimension:
         self._angle = [self._angle_init]
 
     def simulate_position(self, angle):
-        # TODO: fix simulation formula and adjust to table in cm instead meters
         angle += self.noise_gen.noise(len(self._pos) - 1)
         angle = max(min(self._angle_max, angle), self._angle_min)
-        actual_speed = self._g * math.sin(math.radians(angle))
+        actual_speed = self._g * math.sin(math.radians(angle)) * self._tp
         actual_pos = self._pos[-1] + self._speed[-1] + actual_speed
 
         self._speed.append(actual_speed)
@@ -92,4 +94,5 @@ class Dimension:
         self.noise_gen.set_noise_active(noise_active)
 
     def set_tp(self, tp: float):
+        self._tp = tp
         self.noise_gen.set_tp(tp)

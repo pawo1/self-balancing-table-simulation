@@ -13,6 +13,7 @@ from functools import partial
 
 """ --- resources for dynamic access to document elements --- """
 lines = ['xy', 'x_pos', 'y_pos', 'x_vel', 'y_vel', 'x_ang', 'y_ang']
+conversion = ['set_asked_value', 'set_pos_init', 'set_speed_init']
 accelerations = {"Sun (273.95)": 273.95, "Mercury (3.7)": 3.7, "Venus (8.9)": 8.9, "Earth (9.81)": 9.81,
                  "Moon (1.62)": 1.62, "Mars (3.7)": 3.7,
                  "Jupiter (23.1)": 23.1, "Saturn (9.0)": 9.0, "Uranus (8.7)": 8.7,
@@ -27,21 +28,23 @@ Sim2.run()
 x = np.linspace(0, int(60), int(int(60) / 0.01))
 
 """ --- data sources --- """
-sim1_source_xy_pos = ColumnDataSource(data=dict(x=Sim1.table.x.pos, y=Sim1.table.y.pos))
-sim1_source_x_pos = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
-sim1_source_y_pos = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
-sim1_source_x_vel = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
-sim1_source_y_vel = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
-sim1_source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.pos))
-sim1_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.pos))
+sim1_source_xy_pos = ColumnDataSource(data=dict(x=[element * 100 for element in Sim1.table.x.pos],
+                                                y=[element * 100 for element in Sim1.table.y.pos]))
+sim1_source_x_pos = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim1.table.x.pos]))
+sim1_source_y_pos = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim1.table.y.pos]))
+sim1_source_x_vel = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim1.table.x.speed]))
+sim1_source_y_vel = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim1.table.y.speed]))
+sim1_source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.angle))
+sim1_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.angle))
 
-sim2_source_xy_pos = ColumnDataSource(data=dict(x=Sim2.table.x.pos, y=Sim2.table.y.pos))
-sim2_source_x_pos = ColumnDataSource(data=dict(x=x, y=Sim2.table.x.pos))
-sim2_source_y_pos = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.pos))
-sim2_source_x_vel = ColumnDataSource(data=dict(x=x, y=Sim2.table.x.pos))
-sim2_source_y_vel = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.pos))
-sim2_source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.x.pos))
-sim2_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.pos))
+sim2_source_xy_pos = ColumnDataSource(data=dict(x=[element * 100 for element in Sim2.table.x.pos],
+                                                y=[element * 100 for element in Sim2.table.y.pos]))
+sim2_source_x_pos = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim2.table.x.pos]))
+sim2_source_y_pos = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim2.table.y.pos]))
+sim2_source_x_vel = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim2.table.x.speed]))
+sim2_source_y_vel = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim2.table.y.speed]))
+sim2_source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.x.angle))
+sim2_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.angle))
 
 """ --- callbacks --- """
 
@@ -91,6 +94,10 @@ def callback_global(attr, old, new, name):
 
 def callback_axis(attr, old, new, name, axis, simulation):
     """ axis callback for specific simulation passed as argument """
+
+    if name in conversion:
+        new = float(new/100) # conversion from [m] to [cm]
+
     if simulation == "Simulation 1":
         Sim1.set_property_axis(name, axis, new)
         Sim1.run()
@@ -119,29 +126,31 @@ def update_plots():
 
     """ --- data sources --- """
     if sim1_toggle.active is True:
-        sim1_source_xy_pos.data = dict(x=Sim1.table.x.pos, y=Sim1.table.y.pos)
-        sim1_source_x_pos.data = dict(x=x, y=Sim1.table.x.pos)
-        sim1_source_y_pos.data = dict(x=x, y=Sim1.table.y.pos)
-        sim1_source_x_vel.data = dict(x=x, y=Sim1.table.x.speed)
-        sim1_source_y_vel.data = dict(x=x, y=Sim1.table.y.speed)
+        sim1_source_xy_pos.data = dict(x=[element * 100 for element in Sim1.table.x.pos],
+                                       y=[element * 100 for element in Sim1.table.y.pos])
+        sim1_source_x_pos.data = dict(x=x, y=[element * 100 for element in Sim1.table.x.pos])
+        sim1_source_y_pos.data = dict(x=x, y=[element * 100 for element in Sim1.table.y.pos])
+        sim1_source_x_vel.data = dict(x=x, y=[element * 100 for element in Sim1.table.x.speed])
+        sim1_source_y_vel.data = dict(x=x, y=[element * 100 for element in Sim1.table.y.speed])
         sim1_source_x_ang.data = dict(x=x, y=Sim1.table.x.angle)
         sim1_source_y_ang.data = dict(x=x, y=Sim1.table.y.angle)
 
     if sim2_toggle.active is True:
-        sim2_source_xy_pos.data = dict(x=Sim2.table.x.pos, y=Sim2.table.y.pos)
-        sim2_source_x_pos.data = dict(x=x, y=Sim2.table.x.pos)
-        sim2_source_y_pos.data = dict(x=x, y=Sim2.table.y.pos)
-        sim2_source_x_vel.data = dict(x=x, y=Sim2.table.x.pos)
-        sim2_source_y_vel.data = dict(x=x, y=Sim2.table.y.pos)
-        sim2_source_x_ang.data = dict(x=x, y=Sim2.table.x.pos)
-        sim2_source_y_ang.data = dict(x=x, y=Sim2.table.y.pos)
+        sim2_source_xy_pos.data = dict(x=[element * 100 for element in Sim2.table.x.pos],
+                                       y=[element * 100 for element in Sim2.table.y.pos])
+        sim2_source_x_pos.data = dict(x=x, y=[element * 100 for element in Sim2.table.x.pos])
+        sim2_source_y_pos.data = dict(x=x, y=[element * 100 for element in Sim2.table.y.pos])
+        sim2_source_x_vel.data = dict(x=x, y=[element * 100 for element in Sim2.table.x.speed])
+        sim2_source_y_vel.data = dict(x=x, y=[element * 100 for element in Sim2.table.y.speed])
+        sim2_source_x_ang.data = dict(x=x, y=Sim2.table.x.angle)
+        sim2_source_y_ang.data = dict(x=x, y=Sim2.table.y.angle)
 
 
 """ --- widgets --- """
 # TODO: widgets range should be connected to each other and update on change of different input
 #  (i.e. max sim_dist_time_input value on t_sim_input)
-tp_input = Slider(title="Sampling", value=0.010, start=0.005, end=1.000, step=0.005, format='0.000', id='tp_input')
-t_sim_input = TextInput(title="Simulation time", value=str(60), id='tp_sim_input')
+tp_input = Slider(title="Sampling [s]", value=0.010, start=0.005, end=1.000, step=0.005, format='0.000', id='tp_input')
+t_sim_input = TextInput(title="Simulation time [s]", value=str(60), id='tp_sim_input')
 sim1_toggle = Toggle(label="Toggle simulation 1", active=True)
 sim2_toggle = Toggle(label="Toggle simulation 2")
 
@@ -181,14 +190,14 @@ for tab in ["Simulation 1", "Simulation 2"]:
                                       "Earth (9.81)", "Moon (1.62)", "Mars (3.7)",
                                       "Jupiter (23.1)", "Saturn (9.0)", "Uranus (8.7)",
                                       "Neptune (11.0)"])
-        sim_starting_pos_input = Slider(title=dimension.upper() + " position", value=25.0, start=-100, end=100,
+        sim_starting_pos_input = Slider(title=dimension.upper() + " position [cm]", value=25.0, start=-100, end=100,
                                         step=0.5,
                                         format='0.0')
-        sim_starting_vel_input = Slider(title=dimension.upper() + " velocity", value=-1, start=-30, end=30, step=0.5,
+        sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [m/s]", value=-1, start=-30, end=30, step=0.5,
                                         format='0.0')
-        sim_starting_ang_input = Slider(title=dimension.upper() + " angle", value=2.0, start=-90, end=90, step=0.5,
+        sim_starting_ang_input = Slider(title=dimension.upper() + " angle [degree]", value=2.0, start=-90, end=90, step=0.5,
                                         format='0.0')
-        sim_desired_pos_input = Slider(title="Desired " + dimension.upper() + " position", value=0, start=-100, end=100,
+        sim_desired_pos_input = Slider(title="Desired " + dimension.upper() + " position [cm]", value=0, start=-100, end=100,
                                        step=0.5, format='0.0')
 
         tabl.append(column(sim_starting_pos_input, sim_starting_vel_input, sim_starting_ang_input,
@@ -244,7 +253,7 @@ tabs = Tabs(tabs=sim_tabs)
 
 """ --- plots --- """
 """ XY position """
-xy_pos_plot = figure(title="table_position(x,y)", tools="pan,reset,save,wheel_zoom", x_range=[-100, 100],
+xy_pos_plot = figure(title="Position on Table (x, y)[cm x cm]", tools="pan,reset,save,wheel_zoom", x_range=[-100, 100],
                      y_range=[-100, 100])
 xy_pos_plot.sizing_mode = 'stretch_both'
 xy_pos_plot.line('x', 'y', source=sim1_source_xy_pos, name='xy_simulation_1')
