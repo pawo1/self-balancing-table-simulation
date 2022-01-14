@@ -38,8 +38,8 @@ class Dimension:
     def simulate_position(self, angle):
         angle += self.noise_gen.noise(len(self._pos) - 1)
         angle = max(min(self._angle_max, angle), self._angle_min)
-        actual_speed = self._g * math.sin(math.radians(angle)) * self._tp
-        actual_pos = self._pos[-1] + self._speed[-1] + actual_speed
+        actual_speed = self._speed[-1] + self._g * math.sin(math.radians(angle)) * self._tp
+        actual_pos = self._pos[-1] + actual_speed
 
         self._speed.append(actual_speed)
         self._pos.append(actual_pos)

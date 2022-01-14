@@ -56,31 +56,38 @@ def tp_update(attr, old, new):
             model = curdoc().get_model_by_name(_tab+'_noise_freq_'+_dimension)
             model.update(end=1/new)
             if model.value > 1/new:
-                model.trigger('value', model.value, 1/new)
+                model.update(value=1/new)
             model = curdoc().get_model_by_name(_tab+'_noise_time_'+_dimension)
             model.update(start=new)
             if model.value < new:
-                model.trigger('value', model.value, new)
+                model.update(value=new)
 
-    callback_global(attr, old, new, name='set_tp')
+    Sim1.set_property('set_tp', new)
+    Sim2.set_property('set_tp', new)
+    Sim1.run()
+    Sim2.run()
+    update_plots()
 
 
 def t_sim_update(attr, old, new):
     """ simulation time callback """
-    print(attr)
 
     for _tab in ["Simulation 1", "Simulation 2"]:
         for dim in ['x', 'y']:
             model = curdoc().get_model_by_name(_tab+'_noise_freq_'+dim)
             model.update(start=float(1/float(new)))
-            if model.value > int(new):
-                model.trigger('value', model.value, int(new))
+            if model.value > float(1/float(new)):
+                model.update(value=float(1/float(new)))
             model = curdoc().get_model_by_name(_tab+'_noise_time_'+dim)
             model.update(end=int(new))
             if model.value < int(new):
-                model.trigger('value', model.value, int(new))
+                model.update(value=int(new))
 
-    callback_global(attr, old, int(new), name='set_simulation_time')
+    Sim1.set_property('set_simulation_time', int(new))
+    Sim2.set_property('set_simulation_time', int(new))
+    Sim1.run()
+    Sim2.run()
+    update_plots()
 
 
 def change_angle_min(attr, old, new, simulation):
@@ -89,6 +96,7 @@ def change_angle_min(attr, old, new, simulation):
         model.update(start=new)
         if model.value < new:
             model.trigger('value', model.value, new)
+
 
 def change_angle_max(attr, old, new, simulation):
     for dim in ['x', 'y']:
@@ -234,13 +242,14 @@ for tab in ["Simulation 1", "Simulation 2"]:
                                         format='0.0')
         sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [m/s]", value=-1, start=-30, end=30,
                                         step=0.5, format='0.0')
-        sim_starting_ang_input = Slider(title=dimension.upper() + " angle [degree]", value=2.0, start=-90, end=90,
-                                        step=0.5, format='0.0')
+#        present PID algorithm doesn't care about starting angle, setting this is pointless
+#        sim_starting_ang_input = Slider(title=dimension.upper() + " angle [degree]", value=2.0, start=-90, end=90,
+#                                        step=0.5, format='0.0')
         sim_desired_pos_input = Slider(title="Desired " + dimension.upper() + " position [cm]", value=0, start=-100,
                                        end=100, step=0.5, format='0.0')
 
-        tabl.append(column(sim_starting_pos_input, sim_starting_vel_input, sim_starting_ang_input,
-                           sim_desired_pos_input, sizing_mode='stretch_width'))
+        tabl.append(column(sim_starting_pos_input, sim_starting_vel_input, sim_desired_pos_input,
+                           sizing_mode='stretch_width'))
 
         g_acc_input.on_change('value', partial(callback_g_acc, simulation=tab))
 
@@ -248,8 +257,8 @@ for tab in ["Simulation 1", "Simulation 2"]:
                                                                     axis=dimension, simulation=tab))
         sim_starting_vel_input.on_change('value_throttled', partial(callback_axis, name='set_speed_init',
                                                                     axis=dimension, simulation=tab))
-        sim_starting_ang_input.on_change('value_throttled', partial(callback_axis, name='set_angle_init',
-                                                                    axis=dimension, simulation=tab))
+#        sim_starting_ang_input.on_change('value_throttled', partial(callback_axis, name='set_angle_init',
+#                                                                    axis=dimension, simulation=tab))
         sim_desired_pos_input.on_change('value_throttled', partial(callback_axis, name='set_asked_value',
                                                                    axis=dimension, simulation=tab))
 
