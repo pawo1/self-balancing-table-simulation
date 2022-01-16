@@ -408,7 +408,7 @@ y_ang_plot.line('x', 'y', source=sim1_source_y_ang, line_width=3, line_alpha=0.6
 y_ang_plot.line('x', 'y', source=sim2_source_y_ang, line_width=3, line_alpha=0.6, name='y_ang_simulation_2',
                 color="orange")
 
-div_banner = Div(text="""<img src="self-balancing-table-simulation/static/SBTable.png" 
+div_banner = Div(text="""<img src="static/SBTable.png" 
 alt="SBTable banner" style="position:fixed; left:0; bottom:0">""", width=495, height=106)
 
 curdoc().add_root(
