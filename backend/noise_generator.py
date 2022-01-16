@@ -30,7 +30,7 @@ class NoiseGenerator:
             return 0
 
     def sinusoidal_noise(self, n):
-        val = self._noise_level * math.sin(2 * math.pi * self._noise_frequency * (n*self._tp))
+        val = self._noise_level * math.sin(2 * math.pi * self._noise_frequency * (n * self._tp))
         return val
 
     def set_noise_frequency(self, noise_frequency: float):

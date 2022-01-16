@@ -1,4 +1,5 @@
 import math
+
 from backend import noise_generator as ng
 
 
@@ -60,7 +61,6 @@ class Dimension:
         return self._angle
 
     def set_pos_init(self, pos_init: float):
-        print(pos_init)
         self._pos_init = pos_init
 
     def set_speed_init(self, speed_init: float):

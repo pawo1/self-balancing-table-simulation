@@ -1,13 +1,15 @@
+from functools import partial
+
 import numpy as np
-from backend import controller
-from default_values import values, SI_base
 from bokeh.io import curdoc
 from bokeh.layouts import row, column, layout
-from bokeh.models.widgets import Tabs, Panel
 from bokeh.models import ColumnDataSource, RadioButtonGroup, Toggle, Select
 from bokeh.models.widgets import Slider, RangeSlider, TextInput
+from bokeh.models.widgets import Tabs, Panel
 from bokeh.plotting import figure
-from functools import partial
+
+from backend import controller
+from default_values import values, SI_base
 
 # TODO: delegate controller to backend folder
 # TODO: add Favicon, and title poster on main page
@@ -15,7 +17,6 @@ from functools import partial
 
 Sim1 = controller.Controller()
 Sim2 = controller.Controller()
-
 
 """ --- resources for dynamic access to document elements --- """
 lines = ['xy', 'x_pos', 'y_pos', 'x_vel', 'y_vel', 'x_ang', 'y_ang']
@@ -72,11 +73,11 @@ def tp_update(attr, old, new):
     """ simulation sampling callback """
     for _tab in ["Simulation 1", "Simulation 2"]:
         for _dimension in ['x', 'y']:
-            model = curdoc().get_model_by_name(_tab+'_noise_freq_'+_dimension)
-            model.update(end=1/new)
-            if model.value > 1/new:
-                model.update(value=1/new)
-            model = curdoc().get_model_by_name(_tab+'_noise_time_'+_dimension)
+            model = curdoc().get_model_by_name(_tab + '_noise_freq_' + _dimension)
+            model.update(end=1 / new)
+            if model.value > 1 / new:
+                model.update(value=1 / new)
+            model = curdoc().get_model_by_name(_tab + '_noise_time_' + _dimension)
             model.update(start=new)
             if model.value < new:
                 model.update(value=new)
@@ -93,11 +94,11 @@ def t_sim_update(attr, old, new):
 
     for _tab in ["Simulation 1", "Simulation 2"]:
         for dim in ['x', 'y']:
-            model = curdoc().get_model_by_name(_tab+'_noise_freq_'+dim)
-            model.update(start=float(1/float(new)))
-            if model.value > float(1/float(new)):
-                model.update(value=float(1/float(new)))
-            model = curdoc().get_model_by_name(_tab+'_noise_time_'+dim)
+            model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim)
+            model.update(start=float(1 / float(new)))
+            if model.value > float(1 / float(new)):
+                model.update(value=float(1 / float(new)))
+            model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim)
             model.update(end=int(new))
             if model.value < int(new):
                 model.update(value=int(new))
@@ -111,7 +112,7 @@ def t_sim_update(attr, old, new):
 
 def change_angle_min(attr, old, new, simulation):
     for dim in ['x', 'y']:
-        model = curdoc().get_model_by_name(simulation+'_dist_lvl_'+dim)
+        model = curdoc().get_model_by_name(simulation + '_dist_lvl_' + dim)
         model.update(start=new)
         if model.value < new:
             model.trigger('value', model.value, new)
@@ -119,7 +120,7 @@ def change_angle_min(attr, old, new, simulation):
 
 def change_angle_max(attr, old, new, simulation):
     for dim in ['x', 'y']:
-        model = curdoc().get_model_by_name(simulation+'_dist_lvl_'+dim)
+        model = curdoc().get_model_by_name(simulation + '_dist_lvl_' + dim)
         model.update(end=new)
         if model.value > new:
             model.trigger('value', model.value, new)
@@ -136,7 +137,7 @@ def sim_update(attr, old, new, simulation):
 def voltage_update(attr, old, new, simulation):
     """ servo voltage callback """
 
-# we don't use standard callback for min and max values to update plots only once
+    # we don't use standard callback for min and max values to update plots only once
     if simulation == "Simulation 1":
         Sim1.set_property('set_voltage_min', new[0])
         Sim1.set_property('set_voltage_max', new[1])
@@ -162,7 +163,7 @@ def callback_axis(attr, old, new, name, axis, simulation):
     """ axis callback for specific simulation passed as argument """
 
     if name in conversion:
-        new = float(new*SI_base)  # conversion from [m] to [cm]
+        new = float(new * SI_base)  # conversion from [m] to [cm]
 
     if simulation == "Simulation 1":
         Sim1.set_property_axis(name, axis, new)
@@ -191,7 +192,7 @@ def update_plots():
     x = np.linspace(0, int(t_sim_input.value), int(int(t_sim_input.value) / tp_input.value))
 
     """ --- data sources --- """
-#    if sim1_toggle.active is True:
+    #    if sim1_toggle.active is True:
     sim1_source_xy_pos.data = dict(x=[element / SI_base for element in Sim1.table.x.pos],
                                    y=[element / SI_base for element in Sim1.table.y.pos])
     sim1_source_x_pos.data = dict(x=x, y=[element / SI_base for element in Sim1.table.x.pos])
@@ -201,7 +202,7 @@ def update_plots():
     sim1_source_x_ang.data = dict(x=x, y=Sim1.table.x.angle)
     sim1_source_y_ang.data = dict(x=x, y=Sim1.table.y.angle)
 
-#    if sim2_toggle.active is True:
+    #    if sim2_toggle.active is True:
     sim2_source_xy_pos.data = dict(x=[element / SI_base for element in Sim2.table.x.pos],
                                    y=[element / SI_base for element in Sim2.table.y.pos])
     sim2_source_x_pos.data = dict(x=x, y=[element / SI_base for element in Sim2.table.x.pos])
@@ -239,17 +240,17 @@ for tab in ["Simulation 1", "Simulation 2"]:
 
         sim_dist_time_input = Slider(title="Disturbance duration", value=values[tab][dimension]["set_noise_period"],
                                      start=values["Global"]["set_tp"], end=int(values["Global"]["set_simulation_time"]),
-                                     step=values["Global"]["set_tp"], name=tab+'_noise_time_'+dimension)
+                                     step=values["Global"]["set_tp"], name=tab + '_noise_time_' + dimension)
 
         sim_dist_lvl_input = Slider(title="Level", value=values[tab][dimension]["set_noise_level"],
                                     start=values[tab]["set_angle_min"],
                                     end=values[tab]["set_angle_max"],
-                                    step=1, name=tab+'_dist_lvl_'+dimension)
+                                    step=1, name=tab + '_dist_lvl_' + dimension)
 
         sim_dist_freq_input = Slider(title="Frequency", value=values[tab][dimension]["set_noise_frequency"],
-                                     start=float(1/float(values["Global"]["set_simulation_time"])),
-                                     end=1/values["Global"]["set_tp"], step=0.005, format='0.000',
-                                     name=tab+'_noise_freq_'+dimension)
+                                     start=float(1 / float(values["Global"]["set_simulation_time"])),
+                                     end=1 / values["Global"]["set_tp"], step=0.005, format='0.000',
+                                     name=tab + '_noise_freq_' + dimension)
 
         dists.append(Panel(child=layout(
             column(sim_dist_type_input, sim_dist_time_input, sim_dist_lvl_input, sim_dist_freq_input,
@@ -275,9 +276,9 @@ for tab in ["Simulation 1", "Simulation 2"]:
         sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [m/s]",
                                         value=values[tab][dimension]["set_speed_init"] / SI_base, start=-30, end=30,
                                         step=0.5, format='0.0')
-#        present PID algorithm doesn't care about starting angle, setting this is pointless
-#        sim_starting_ang_input = Slider(title=dimension.upper() + " angle [degree]", value=2.0, start=-90, end=90,
-#                                        step=0.5, format='0.0')
+        #        present PID algorithm doesn't care about starting angle, setting this is pointless
+        #        sim_starting_ang_input = Slider(title=dimension.upper() + " angle [degree]", value=2.0, start=-90,
+        #                                        end=90, step=0.5, format='0.0')
         sim_desired_pos_input = Slider(title="Desired " + dimension.upper() + " position [cm]",
                                        value=values[tab][dimension]["set_asked_value"] / SI_base, start=-100,
                                        end=100, step=0.5, format='0.0')
@@ -291,8 +292,8 @@ for tab in ["Simulation 1", "Simulation 2"]:
                                                                     axis=dimension, simulation=tab))
         sim_starting_vel_input.on_change('value_throttled', partial(callback_axis, name='set_speed_init',
                                                                     axis=dimension, simulation=tab))
-#        sim_starting_ang_input.on_change('value_throttled', partial(callback_axis, name='set_angle_init',
-#                                                                    axis=dimension, simulation=tab))
+        #        sim_starting_ang_input.on_change('value_throttled', partial(callback_axis, name='set_angle_init',
+        #                                                                    axis=dimension, simulation=tab))
         sim_desired_pos_input.on_change('value_throttled', partial(callback_axis, name='set_asked_value',
                                                                    axis=dimension, simulation=tab))
 

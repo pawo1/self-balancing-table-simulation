@@ -1,9 +1,10 @@
 from dataclasses import dataclass, field
-from backend.setters_dict import setters
-from backend import table
-from backend import servo
+
 from backend import regulator
 from backend import sensor
+from backend import servo
+from backend import table
+from backend.setters_dict import setters
 
 
 @dataclass
@@ -89,7 +90,7 @@ class Controller:
 
         if prop in setters:
             for obj_name in setters[prop]:
-                obj = getattr(self, obj_name+suffix)
+                obj = getattr(self, obj_name + suffix)
                 method = getattr(obj, prop)
                 method(value)
 
