@@ -12,8 +12,7 @@ class NoiseGenerator:
     _noise_active: bool = False
 
     def noise(self, n):
-        # TODO: Fix Period conversion
-        if self._noise_active is False or self._noise_period < n or self._noise_period == 0 \
+        if self._noise_active is False or int(self._noise_period / self._tp) < n or self._noise_period == 0 \
                 or self._noise_frequency == 0:
             return 0
 

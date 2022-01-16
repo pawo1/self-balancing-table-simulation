@@ -45,7 +45,8 @@ Sim1.run()
 Sim2.run()
 
 # linspace for plot lines
-x = np.linspace(0, int(60), int(int(60) / 0.01))
+x = np.linspace(0, int(values["Global"]["set_simulation_time"]),
+                int(int(values["Global"]["set_simulation_time"]) / values["Global"]["set_tp"]))
 
 """ --- data sources --- """
 sim1_source_xy_pos = ColumnDataSource(data=dict(x=[element / SI_base for element in Sim1.table.x.pos],
