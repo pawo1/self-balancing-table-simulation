@@ -18,6 +18,7 @@ Sim1 = controller.Controller()
 Sim2 = controller.Controller()
 
 """ --- resources for dynamic access to document elements --- """
+simulation_names = ['Simulation 1', 'Simulation 2']
 lines = ['xy', 'x_pos', 'y_pos', 'x_vel', 'y_vel', 'x_ang', 'y_ang']
 conversion = ['set_asked_value', 'set_pos_init', 'set_speed_init']
 accelerations = {"Sun (273.95)": 273.95, "Mercury (3.7)": 3.7, "Venus (8.9)": 8.9, "Earth (9.81)": 9.81,
@@ -71,14 +72,14 @@ sim2_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.angle))
 
 def tp_update(attr, old, new):
     """ simulation sampling callback """
-    for _tab in ["Simulation 1", "Simulation 2"]:
+    for _tab in simulation_names:
         for dim in ['x', 'y']:
             model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim)
             model.update(end=1 / new)
             model.update(step=values["Global"]["set_tp"])
             if model.value > 1 / new:
                 model.update(value=1 / new)
-                simulation_dict[_tab].set_property_axis('set_noise_frequency', dim, 1/new)
+                simulation_dict[_tab].set_property_axis('set_noise_frequency', dim, 1 / new)
             model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim)
             model.update(start=new)
             if model.value < new:
@@ -95,7 +96,7 @@ def tp_update(attr, old, new):
 def t_sim_update(attr, old, new):
     """ simulation time callback """
 
-    for _tab in ["Simulation 1", "Simulation 2"]:
+    for _tab in simulation_names:
         for dim in ['x', 'y']:
             model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim)
             model.update(start=float(1 / float(new)))
@@ -146,15 +147,9 @@ def voltage_update(attr, old, new, simulation):
     """ servo voltage callback """
 
     # we don't use standard callback for min and max values to update plots only once
-    if simulation == "Simulation 1":
-        Sim1.set_property('set_voltage_min', new[0])
-        Sim1.set_property('set_voltage_max', new[1])
-        Sim1.run()
-    elif simulation == "Simulation 2":
-        Sim2.set_property('set_voltage_min', new[0])
-        Sim2.set_property('set_voltage_max', new[1])
-        Sim2.run()
-    update_plots()
+    simulation_dict[simulation].set_property('set_voltage_min', new[0])
+    simulation_dict[simulation].set_property('set_voltage_max', new[1])
+    simulation_dict[simulation].run()
 
 
 def callback_g_acc(attr, old, new, simulation):
@@ -163,8 +158,8 @@ def callback_g_acc(attr, old, new, simulation):
 
 def callback_global(attr, old, new, name):
     """ callback updating global parameters for both simulations """
-    callback(attr, old, new, name, "Simulation 1")
-    callback(attr, old, new, name, "Simulation 2")
+    for sim_name in simulation_names:
+        callback(attr, old, new, name, sim_name)
 
 
 def callback_axis(attr, old, new, name, axis, simulation):
@@ -173,23 +168,18 @@ def callback_axis(attr, old, new, name, axis, simulation):
     if name in conversion:
         new = float(new * SI_base)  # conversion from [m] to [cm]
 
-    if simulation == "Simulation 1":
-        Sim1.set_property_axis(name, axis, new)
-        Sim1.run()
-    elif simulation == "Simulation 2":
-        Sim2.set_property_axis(name, axis, new)
-        Sim2.run()
+    simulation_dict[simulation].set_property_axis(name, axis, new)
+    simulation_dict[simulation].run()
+
     update_plots()
 
 
 def callback(attr, old, new, name, simulation):
     """ main callback function """
-    if simulation == "Simulation 1":
-        Sim1.set_property(name, new)
-        Sim1.run()
-    elif simulation == "Simulation 2":
-        Sim2.set_property(name, new)
-        Sim2.run()
+
+    simulation_dict[simulation].set_property(name, new)
+    simulation_dict[simulation].run()
+
     update_plots()
 
 
@@ -232,10 +222,9 @@ def update_range():
 
         renderers = []
 
-        if sim1_toggle.active is True:
-            renderers.append(curdoc().get_model_by_name(name+"_simulation_1"))
-        if sim2_toggle.active is True:
-            renderers.append(curdoc().get_model_by_name(name+"_simulation_2"))
+        for sim_name in simulation_names:
+            if curdoc().get_model_by_name("toggle_" + sim_name.lower().replace(' ', '_')).active is True:
+                renderers.append(curdoc().get_model_by_name(name + "_" + sim_name.lower().replace(' ', '_')))
 
         plots[name].y_range.update(renderers=renderers)
 
@@ -246,14 +235,16 @@ tp_input = Slider(title="Sampling [s]", value=values["Global"]["set_tp"], start=
 t_sim_input = TextInput(title="Simulation time [s]", value=str(values["Global"]["set_simulation_time"]),
                         id='tp_sim_input')
 
-# TODO: add this to default values
-sim1_toggle = Toggle(label="Toggle simulation 1", active=True)
-sim2_toggle = Toggle(label="Toggle simulation 2", active=True)
+
+toggle = []
+for sim_name in simulation_names:
+    sim_toggle = Toggle(label="Toggle " + sim_name.lower(), active=values[sim_name]["toggle"],
+                        name="toggle_" + sim_name.lower().replace(' ', '_'))
+    sim_toggle.on_change('active', partial(sim_update, simulation=sim_name.lower().replace(' ', '_')))
+    toggle.append(sim_toggle)
 
 tp_input.on_change('value_throttled', tp_update)
 t_sim_input.on_change('value', t_sim_update)
-sim1_toggle.on_change('active', partial(sim_update, simulation='simulation_1'))
-sim2_toggle.on_change('active', partial(sim_update, simulation='simulation_2'))
 
 sim_tabs = []
 for tab in ["Simulation 1", "Simulation 2"]:
@@ -420,13 +411,16 @@ y_ang_plot.line('x', 'y', source=sim2_source_y_ang, line_width=3, line_alpha=0.6
 curdoc().add_root(
     row(column(
         row(tp_input, t_sim_input, sizing_mode='stretch_width'),
-        row(sim1_toggle, sim2_toggle, sizing_mode='stretch_width'), tabs, sizing_mode='stretch_width'),
+        row(toggle, sizing_mode='stretch_width'), tabs, sizing_mode='stretch_width'),
         column(xy_pos_plot, row(column(x_pos_plot, x_vel_plot, x_ang_plot),
                                 column(y_pos_plot, y_vel_plot, y_ang_plot), sizing_mode='stretch_both'),
                sizing_mode='stretch_both'),
         sizing_mode='stretch_both'))
 
 curdoc().title = "Self-balancing table simulation"
+for dim in ["Simulation 1", "Simulation 2"]:
+    sim_update('active', 0, values[dim]["toggle"], simulation=dim.lower().replace(' ', '_'))
 update_range()
 update_plots()
+# TODO: dark theme templates with dynamic change button
 # curdoc().theme = 'dark_minimal'

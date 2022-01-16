@@ -1,4 +1,7 @@
 values = {}
+
+# The simulation always uses SI units, but to show the results it is better to convert it to a more convenient one for
+# human reading
 SI_base = 0.01
 
 Impulse = 0
@@ -12,6 +15,8 @@ values["Simulation 2"] = {"x": {}, "y": {}}
 # Global values, same for all Simulations
 values["Global"] = {"set_tp": 0.01, "set_simulation_time": 60}
 
+values["Simulation 1"]["toggle"] = True
+values["Simulation 2"]["toggle"] = False
 """ Starting values for Simulation 1 """
 
 # PID config
