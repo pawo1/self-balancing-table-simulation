@@ -5,7 +5,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import row, column, layout
 from bokeh.models import ColumnDataSource, RadioButtonGroup, Toggle, Select
 from bokeh.models.widgets import Slider, RangeSlider, TextInput
-from bokeh.models.widgets import Tabs, Panel
+from bokeh.models.widgets import Tabs, Panel, Div
 from bokeh.plotting import figure
 
 from backend import controller
@@ -73,18 +73,18 @@ sim2_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.angle))
 def tp_update(attr, old, new):
     """ simulation sampling callback """
     for _tab in simulation_names:
-        for dim in ['x', 'y']:
-            model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim)
+        for dim_call in ['x', 'y']:
+            model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim_call)
             model.update(end=1 / new)
             model.update(step=values["Global"]["set_tp"])
             if model.value > 1 / new:
                 model.update(value=1 / new)
-                simulation_dict[_tab].set_property_axis('set_noise_frequency', dim, 1 / new)
-            model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim)
+                simulation_dict[_tab].set_property_axis('set_noise_frequency', dim_call, 1 / new)
+            model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim_call)
             model.update(start=new)
             if model.value < new:
                 model.update(value=new)
-                simulation_dict[_tab].set_property_axis('set_noise_period', dim, new)
+                simulation_dict[_tab].set_property_axis('set_noise_period', dim_call, new)
 
     Sim1.set_property('set_tp', new)
     Sim2.set_property('set_tp', new)
@@ -97,17 +97,17 @@ def t_sim_update(attr, old, new):
     """ simulation time callback """
 
     for _tab in simulation_names:
-        for dim in ['x', 'y']:
-            model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim)
+        for dim_call in ['x', 'y']:
+            model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim_call)
             model.update(start=float(1 / float(new)))
             if model.value > float(1 / float(new)):
                 model.update(value=float(1 / float(new)))
-                simulation_dict[_tab].set_property_axis('set_noise_frequency', dim, float(1 / float(new)))
-            model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim)
+                simulation_dict[_tab].set_property_axis('set_noise_frequency', dim_call, float(1 / float(new)))
+            model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim_call)
             model.update(end=int(new))
             if model.value < int(new):
                 model.update(value=int(new))
-                simulation_dict[_tab].set_property_axis('set_noise_period', dim, int(new))
+                simulation_dict[_tab].set_property_axis('set_noise_period', dim_call, int(new))
 
     Sim1.set_property('set_simulation_time', int(new))
     Sim2.set_property('set_simulation_time', int(new))
@@ -117,16 +117,16 @@ def t_sim_update(attr, old, new):
 
 
 def change_angle_min(attr, old, new, simulation):
-    for dim in ['x', 'y']:
-        model = curdoc().get_model_by_name(simulation + '_dist_lvl_' + dim)
+    for dim_call in ['x', 'y']:
+        model = curdoc().get_model_by_name(simulation + '_dist_lvl_' + dim_call)
         model.update(start=new)
         if model.value < new:
             model.trigger('value', model.value, new)
 
 
 def change_angle_max(attr, old, new, simulation):
-    for dim in ['x', 'y']:
-        model = curdoc().get_model_by_name(simulation + '_dist_lvl_' + dim)
+    for dim_call in ['x', 'y']:
+        model = curdoc().get_model_by_name(simulation + '_dist_lvl_' + dim_call)
         model.update(end=new)
         if model.value > new:
             model.trigger('value', model.value, new)
@@ -158,8 +158,8 @@ def callback_g_acc(attr, old, new, simulation):
 
 def callback_global(attr, old, new, name):
     """ callback updating global parameters for both simulations """
-    for sim_name in simulation_names:
-        callback(attr, old, new, name, sim_name)
+    for sim_name_call in simulation_names:
+        callback(attr, old, new, name, sim_name_call)
 
 
 def callback_axis(attr, old, new, name, axis, simulation):
@@ -222,9 +222,9 @@ def update_range():
 
         renderers = []
 
-        for sim_name in simulation_names:
-            if curdoc().get_model_by_name("toggle_" + sim_name.lower().replace(' ', '_')).active is True:
-                renderers.append(curdoc().get_model_by_name(name + "_" + sim_name.lower().replace(' ', '_')))
+        for sim_name_call in simulation_names:
+            if curdoc().get_model_by_name("toggle_" + sim_name_call.lower().replace(' ', '_')).active is True:
+                renderers.append(curdoc().get_model_by_name(name + "_" + sim_name_call.lower().replace(' ', '_')))
 
         plots[name].y_range.update(renderers=renderers)
 
@@ -408,10 +408,13 @@ y_ang_plot.line('x', 'y', source=sim1_source_y_ang, line_width=3, line_alpha=0.6
 y_ang_plot.line('x', 'y', source=sim2_source_y_ang, line_width=3, line_alpha=0.6, name='y_ang_simulation_2',
                 color="orange")
 
+div_banner = Div(text="""<img src="self-balancing-table-simulation/static/SBTable.png" 
+alt="SBTable banner" style="position:fixed; left:0; bottom:0">""", width=495, height=106)
+
 curdoc().add_root(
     row(column(
         row(tp_input, t_sim_input, sizing_mode='stretch_width'),
-        row(toggle, sizing_mode='stretch_width'), tabs, sizing_mode='stretch_width'),
+        row(toggle, sizing_mode='stretch_width'), tabs, div_banner, sizing_mode='stretch_width'),
         column(xy_pos_plot, row(column(x_pos_plot, x_vel_plot, x_ang_plot),
                                 column(y_pos_plot, y_vel_plot, y_ang_plot), sizing_mode='stretch_both'),
                sizing_mode='stretch_both'),
