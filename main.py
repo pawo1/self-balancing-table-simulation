@@ -1,5 +1,5 @@
 import numpy as np
-import controller
+from backend import controller
 from default_values import values, SI_base
 from bokeh.io import curdoc
 from bokeh.layouts import row, column, layout

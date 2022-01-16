@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
-from setters_dict import setters
-import table
-import servo
-import regulator
-import sensor
+from backend.setters_dict import setters
+from backend import table
+from backend import servo
+from backend import regulator
+from backend import sensor
 
 
 @dataclass

@@ -1,4 +1,4 @@
-import dimension
+from backend import dimension
 
 
 class Table:

@@ -1,5 +1,5 @@
 import math
-import noise_generator as ng
+from backend import noise_generator as ng
 
 
 class Dimension:
