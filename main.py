@@ -11,9 +11,8 @@ from bokeh.plotting import figure
 from backend import controller
 from default_values import values, SI_base
 
-# TODO: delegate controller to backend folder
 # TODO: add Favicon, and title poster on main page
-# TODO: fix auto-range plots for hidden lines
+# TODO: fix widgets formats
 
 Sim1 = controller.Controller()
 Sim2 = controller.Controller()
@@ -44,7 +43,7 @@ for simulation_name, sim_prop in values.items():
 Sim1.run()
 Sim2.run()
 
-# linspace for plot lines
+# lin-space for plot lines
 x = np.linspace(0, int(values["Global"]["set_simulation_time"]),
                 int(int(values["Global"]["set_simulation_time"]) / values["Global"]["set_tp"]))
 
@@ -73,15 +72,18 @@ sim2_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.angle))
 def tp_update(attr, old, new):
     """ simulation sampling callback """
     for _tab in ["Simulation 1", "Simulation 2"]:
-        for _dimension in ['x', 'y']:
-            model = curdoc().get_model_by_name(_tab + '_noise_freq_' + _dimension)
+        for dim in ['x', 'y']:
+            model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim)
             model.update(end=1 / new)
+            model.update(step=values["Global"]["set_tp"])
             if model.value > 1 / new:
                 model.update(value=1 / new)
-            model = curdoc().get_model_by_name(_tab + '_noise_time_' + _dimension)
+                simulation_dict[_tab].set_property_axis('set_noise_frequency', dim, 1/new)
+            model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim)
             model.update(start=new)
             if model.value < new:
                 model.update(value=new)
+                simulation_dict[_tab].set_property_axis('set_noise_period', dim, new)
 
     Sim1.set_property('set_tp', new)
     Sim2.set_property('set_tp', new)
@@ -99,10 +101,12 @@ def t_sim_update(attr, old, new):
             model.update(start=float(1 / float(new)))
             if model.value > float(1 / float(new)):
                 model.update(value=float(1 / float(new)))
+                simulation_dict[_tab].set_property_axis('set_noise_frequency', dim, float(1 / float(new)))
             model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim)
             model.update(end=int(new))
             if model.value < int(new):
                 model.update(value=int(new))
+                simulation_dict[_tab].set_property_axis('set_noise_period', dim, int(new))
 
     Sim1.set_property('set_simulation_time', int(new))
     Sim2.set_property('set_simulation_time', int(new))
@@ -129,9 +133,12 @@ def change_angle_max(attr, old, new, simulation):
 
 def sim_update(attr, old, new, simulation):
     """ simulation toggle callback """
+
     for name in lines:
         line = curdoc().get_model_by_name(name + '_' + simulation)
         line.visible = new
+
+    update_range()
     update_plots()
 
 
@@ -189,6 +196,7 @@ def callback(attr, old, new, name, simulation):
 def update_plots():
     """ callback updating plots """
     # TODO: real time plot stream
+
     global x
     x = np.linspace(0, int(t_sim_input.value), int(int(t_sim_input.value) / tp_input.value))
 
@@ -212,6 +220,24 @@ def update_plots():
     sim2_source_y_vel.data = dict(x=x, y=[element / SI_base for element in Sim2.table.y.speed])
     sim2_source_x_ang.data = dict(x=x, y=Sim2.table.x.angle)
     sim2_source_y_ang.data = dict(x=x, y=Sim2.table.y.angle)
+
+
+def update_range():
+    plots = {"x_pos": x_pos_plot, "y_pos": y_pos_plot, "x_vel": x_vel_plot, "y_vel": y_vel_plot, "x_ang": x_ang_plot,
+             "y_ang": y_ang_plot}
+
+    for name in lines:
+        if name == "xy":  # main table plot has fixed -100;100 ranges
+            continue
+
+        renderers = []
+
+        if sim1_toggle.active is True:
+            renderers.append(curdoc().get_model_by_name(name+"_simulation_1"))
+        if sim2_toggle.active is True:
+            renderers.append(curdoc().get_model_by_name(name+"_simulation_2"))
+
+        plots[name].y_range.update(renderers=renderers)
 
 
 """ --- widgets --- """
@@ -250,8 +276,8 @@ for tab in ["Simulation 1", "Simulation 2"]:
 
         sim_dist_freq_input = Slider(title="Frequency", value=values[tab][dimension]["set_noise_frequency"],
                                      start=float(1 / float(values["Global"]["set_simulation_time"])),
-                                     end=1 / values["Global"]["set_tp"], step=0.005, format='0.000',
-                                     name=tab + '_noise_freq_' + dimension)
+                                     end=1 / values["Global"]["set_tp"], step=values["Global"]["set_tp"],
+                                     format='0.000', name=tab + '_noise_freq_' + dimension)
 
         dists.append(Panel(child=layout(
             column(sim_dist_type_input, sim_dist_time_input, sim_dist_lvl_input, sim_dist_freq_input,
@@ -401,5 +427,6 @@ curdoc().add_root(
         sizing_mode='stretch_both'))
 
 curdoc().title = "Self-balancing table simulation"
+update_range()
 update_plots()
 # curdoc().theme = 'dark_minimal'

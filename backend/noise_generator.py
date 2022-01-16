@@ -23,7 +23,7 @@ class NoiseGenerator:
             return self.sinusoidal_noise(n)
 
     def impulse_noise(self, n):
-        if (n % ((1 / self._noise_frequency) / self._tp)) == 0:
+        if (n % round(((1 / self._noise_frequency) / self._tp))) == 0:
             return self._noise_level
         else:
             return 0

@@ -43,12 +43,12 @@ values["Simulation 1"]["set_noise_active"] = False
 values["Simulation 1"]["x"]["set_noise_type"] = Impulse
 values["Simulation 1"]["x"]["set_noise_level"] = 10
 values["Simulation 1"]["x"]["set_noise_period"] = 60
-values["Simulation 1"]["x"]["set_noise_frequency"] = 1
+values["Simulation 1"]["x"]["set_noise_frequency"] = 1.0
 
 values["Simulation 1"]["y"]["set_noise_type"] = Impulse
 values["Simulation 1"]["y"]["set_noise_level"] = 10
 values["Simulation 1"]["y"]["set_noise_period"] = 60
-values["Simulation 1"]["y"]["set_noise_frequency"] = 1
+values["Simulation 1"]["y"]["set_noise_frequency"] = 1.0
 
 # Starting values for Simulation 2
 values["Simulation 2"]["set_pid_type"] = Positional
