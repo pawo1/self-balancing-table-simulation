@@ -1,5 +1,6 @@
 import numpy as np
 import controller
+from default_values import values, SI_base
 from bokeh.io import curdoc
 from bokeh.layouts import row, column, layout
 from bokeh.models.widgets import Tabs, Panel
@@ -10,6 +11,11 @@ from functools import partial
 
 # TODO: delegate controller to backend folder
 # TODO: add Favicon, and title poster on main page
+# TODO: fix auto-range plots for hidden lines
+
+Sim1 = controller.Controller()
+Sim2 = controller.Controller()
+
 
 """ --- resources for dynamic access to document elements --- """
 lines = ['xy', 'x_pos', 'y_pos', 'x_vel', 'y_vel', 'x_ang', 'y_ang']
@@ -18,31 +24,44 @@ accelerations = {"Sun (273.95)": 273.95, "Mercury (3.7)": 3.7, "Venus (8.9)": 8.
                  "Moon (1.62)": 1.62, "Mars (3.7)": 3.7,
                  "Jupiter (23.1)": 23.1, "Saturn (9.0)": 9.0, "Uranus (8.7)": 8.7,
                  "Neptune (11.0)": 11.0}
+simulation_dict = {"Simulation 1": Sim1, "Simulation 2": Sim2}
 
 """ --- initial simulation --- """
-# TODO: initial simulation values should be the same values displaying by the widgets
-Sim1 = controller.Controller()
+for simulation_name, sim_prop in values.items():
+    for key, value in sim_prop.items():
+        if simulation_name == "Global":
+            for _, sim in simulation_dict.items():
+                sim.set_property(key, value)
+        elif type(value) is dict:
+            for axis_prop, axis_value in value.items():
+                simulation_dict[simulation_name].set_property_axis(axis_prop, key, axis_value)
+        elif key == "set_acceleration":
+            simulation_dict[simulation_name].set_property(key, accelerations[value])
+        else:
+            simulation_dict[simulation_name].set_property(key, value)
+
 Sim1.run()
-Sim2 = controller.Controller()
 Sim2.run()
+
+# linspace for plot lines
 x = np.linspace(0, int(60), int(int(60) / 0.01))
 
 """ --- data sources --- """
-sim1_source_xy_pos = ColumnDataSource(data=dict(x=[element * 100 for element in Sim1.table.x.pos],
-                                                y=[element * 100 for element in Sim1.table.y.pos]))
-sim1_source_x_pos = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim1.table.x.pos]))
-sim1_source_y_pos = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim1.table.y.pos]))
-sim1_source_x_vel = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim1.table.x.speed]))
-sim1_source_y_vel = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim1.table.y.speed]))
+sim1_source_xy_pos = ColumnDataSource(data=dict(x=[element / SI_base for element in Sim1.table.x.pos],
+                                                y=[element / SI_base for element in Sim1.table.y.pos]))
+sim1_source_x_pos = ColumnDataSource(data=dict(x=x, y=[element / SI_base for element in Sim1.table.x.pos]))
+sim1_source_y_pos = ColumnDataSource(data=dict(x=x, y=[element / SI_base for element in Sim1.table.y.pos]))
+sim1_source_x_vel = ColumnDataSource(data=dict(x=x, y=[element / SI_base for element in Sim1.table.x.speed]))
+sim1_source_y_vel = ColumnDataSource(data=dict(x=x, y=[element / SI_base for element in Sim1.table.y.speed]))
 sim1_source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.x.angle))
 sim1_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim1.table.y.angle))
 
-sim2_source_xy_pos = ColumnDataSource(data=dict(x=[element * 100 for element in Sim2.table.x.pos],
-                                                y=[element * 100 for element in Sim2.table.y.pos]))
-sim2_source_x_pos = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim2.table.x.pos]))
-sim2_source_y_pos = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim2.table.y.pos]))
-sim2_source_x_vel = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim2.table.x.speed]))
-sim2_source_y_vel = ColumnDataSource(data=dict(x=x, y=[element * 100 for element in Sim2.table.y.speed]))
+sim2_source_xy_pos = ColumnDataSource(data=dict(x=[element / SI_base for element in Sim2.table.x.pos],
+                                                y=[element / SI_base for element in Sim2.table.y.pos]))
+sim2_source_x_pos = ColumnDataSource(data=dict(x=x, y=[element / SI_base for element in Sim2.table.x.pos]))
+sim2_source_y_pos = ColumnDataSource(data=dict(x=x, y=[element / SI_base for element in Sim2.table.y.pos]))
+sim2_source_x_vel = ColumnDataSource(data=dict(x=x, y=[element / SI_base for element in Sim2.table.x.speed]))
+sim2_source_y_vel = ColumnDataSource(data=dict(x=x, y=[element / SI_base for element in Sim2.table.y.speed]))
 sim2_source_x_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.x.angle))
 sim2_source_y_ang = ColumnDataSource(data=dict(x=x, y=Sim2.table.y.angle))
 
@@ -143,7 +162,7 @@ def callback_axis(attr, old, new, name, axis, simulation):
     """ axis callback for specific simulation passed as argument """
 
     if name in conversion:
-        new = float(new/100)  # conversion from [m] to [cm]
+        new = float(new*SI_base)  # conversion from [m] to [cm]
 
     if simulation == "Simulation 1":
         Sim1.set_property_axis(name, axis, new)
@@ -173,31 +192,35 @@ def update_plots():
 
     """ --- data sources --- """
 #    if sim1_toggle.active is True:
-    sim1_source_xy_pos.data = dict(x=[element * 100 for element in Sim1.table.x.pos],
-                                   y=[element * 100 for element in Sim1.table.y.pos])
-    sim1_source_x_pos.data = dict(x=x, y=[element * 100 for element in Sim1.table.x.pos])
-    sim1_source_y_pos.data = dict(x=x, y=[element * 100 for element in Sim1.table.y.pos])
-    sim1_source_x_vel.data = dict(x=x, y=[element * 100 for element in Sim1.table.x.speed])
-    sim1_source_y_vel.data = dict(x=x, y=[element * 100 for element in Sim1.table.y.speed])
+    sim1_source_xy_pos.data = dict(x=[element / SI_base for element in Sim1.table.x.pos],
+                                   y=[element / SI_base for element in Sim1.table.y.pos])
+    sim1_source_x_pos.data = dict(x=x, y=[element / SI_base for element in Sim1.table.x.pos])
+    sim1_source_y_pos.data = dict(x=x, y=[element / SI_base for element in Sim1.table.y.pos])
+    sim1_source_x_vel.data = dict(x=x, y=[element / SI_base for element in Sim1.table.x.speed])
+    sim1_source_y_vel.data = dict(x=x, y=[element / SI_base for element in Sim1.table.y.speed])
     sim1_source_x_ang.data = dict(x=x, y=Sim1.table.x.angle)
     sim1_source_y_ang.data = dict(x=x, y=Sim1.table.y.angle)
 
 #    if sim2_toggle.active is True:
-    sim2_source_xy_pos.data = dict(x=[element * 100 for element in Sim2.table.x.pos],
-                                   y=[element * 100 for element in Sim2.table.y.pos])
-    sim2_source_x_pos.data = dict(x=x, y=[element * 100 for element in Sim2.table.x.pos])
-    sim2_source_y_pos.data = dict(x=x, y=[element * 100 for element in Sim2.table.y.pos])
-    sim2_source_x_vel.data = dict(x=x, y=[element * 100 for element in Sim2.table.x.speed])
-    sim2_source_y_vel.data = dict(x=x, y=[element * 100 for element in Sim2.table.y.speed])
+    sim2_source_xy_pos.data = dict(x=[element / SI_base for element in Sim2.table.x.pos],
+                                   y=[element / SI_base for element in Sim2.table.y.pos])
+    sim2_source_x_pos.data = dict(x=x, y=[element / SI_base for element in Sim2.table.x.pos])
+    sim2_source_y_pos.data = dict(x=x, y=[element / SI_base for element in Sim2.table.y.pos])
+    sim2_source_x_vel.data = dict(x=x, y=[element / SI_base for element in Sim2.table.x.speed])
+    sim2_source_y_vel.data = dict(x=x, y=[element / SI_base for element in Sim2.table.y.speed])
     sim2_source_x_ang.data = dict(x=x, y=Sim2.table.x.angle)
     sim2_source_y_ang.data = dict(x=x, y=Sim2.table.y.angle)
 
 
 """ --- widgets --- """
-tp_input = Slider(title="Sampling [s]", value=0.010, start=0.005, end=1.000, step=0.005, format='0.000', id='tp_input')
-t_sim_input = TextInput(title="Simulation time [s]", value=str(60), id='tp_sim_input')
+tp_input = Slider(title="Sampling [s]", value=values["Global"]["set_tp"], start=0.005, end=1.000, step=0.005,
+                  format='0.000', id='tp_input')
+t_sim_input = TextInput(title="Simulation time [s]", value=str(values["Global"]["set_simulation_time"]),
+                        id='tp_sim_input')
+
+# TODO: add this to default values
 sim1_toggle = Toggle(label="Toggle simulation 1", active=True)
-sim2_toggle = Toggle(label="Toggle simulation 2")
+sim2_toggle = Toggle(label="Toggle simulation 2", active=True)
 
 tp_input.on_change('value_throttled', tp_update)
 t_sim_input.on_change('value', t_sim_update)
@@ -206,17 +229,26 @@ sim2_toggle.on_change('active', partial(sim_update, simulation='simulation_2'))
 
 sim_tabs = []
 for tab in ["Simulation 1", "Simulation 2"]:
-    sim_dist_toggle = Toggle(label="Toggle noise", button_type='default')
+    sim_dist_toggle = Toggle(label="Toggle noise", button_type='default', active=values[tab]["set_noise_active"])
     sim_dist_toggle.on_change('active', partial(callback, name='set_noise_active', simulation=tab))
     dists = []
     tabl = []
     for dimension in ['x', 'y']:
         """ disturbances widgets """
-        sim_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=0)
-        sim_dist_time_input = Slider(title="Disturbance duration", value=360, start=0, end=14400, step=1,
-                                     name=tab+'_noise_time_'+dimension)
-        sim_dist_lvl_input = Slider(title="Level", value=-1, start=-15, end=15, step=1, name=tab+'_dist_lvl_'+dimension)
-        sim_dist_freq_input = Slider(title="Frequency", value=0.100, start=0.001, end=10, step=0.005, format='0.000',
+        sim_dist_type_input = RadioButtonGroup(labels=["Pulse", "Sin"], active=values[tab][dimension]["set_noise_type"])
+
+        sim_dist_time_input = Slider(title="Disturbance duration", value=values[tab][dimension]["set_noise_period"],
+                                     start=values["Global"]["set_tp"], end=int(values["Global"]["set_simulation_time"]),
+                                     step=values["Global"]["set_tp"], name=tab+'_noise_time_'+dimension)
+
+        sim_dist_lvl_input = Slider(title="Level", value=values[tab][dimension]["set_noise_level"],
+                                    start=values[tab]["set_angle_min"],
+                                    end=values[tab]["set_angle_max"],
+                                    step=1, name=tab+'_dist_lvl_'+dimension)
+
+        sim_dist_freq_input = Slider(title="Frequency", value=values[tab][dimension]["set_noise_frequency"],
+                                     start=float(1/float(values["Global"]["set_simulation_time"])),
+                                     end=1/values["Global"]["set_tp"], step=0.005, format='0.000',
                                      name=tab+'_noise_freq_'+dimension)
 
         dists.append(Panel(child=layout(
@@ -232,20 +264,22 @@ for tab in ["Simulation 1", "Simulation 2"]:
         sim_dist_freq_input.on_change('value_throttled', partial(callback_axis, name='set_noise_frequency',
                                                                  axis=dimension, simulation=tab))
         """ table widgets """
-        g_acc_input = Select(title="Gravitational acceleration [m/s^2]", value="Earth (9.81)",
+        g_acc_input = Select(title="Gravitational acceleration [m/s^2]", value=values[tab]["set_acceleration"],
                              options=["Sun (273.95)", "Mercury (3.7)", "Venus (8.9)",
                                       "Earth (9.81)", "Moon (1.62)", "Mars (3.7)",
                                       "Jupiter (23.1)", "Saturn (9.0)", "Uranus (8.7)",
                                       "Neptune (11.0)"])
-        sim_starting_pos_input = Slider(title=dimension.upper() + " position [cm]", value=25.0, start=-100, end=100,
-                                        step=0.5,
-                                        format='0.0')
-        sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [m/s]", value=-1, start=-30, end=30,
+        sim_starting_pos_input = Slider(title=dimension.upper() + " position [cm]",
+                                        value=values[tab][dimension]["set_pos_init"] / SI_base, start=-100, end=100,
+                                        step=0.5, format='0.0')
+        sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [m/s]",
+                                        value=values[tab][dimension]["set_speed_init"] / SI_base, start=-30, end=30,
                                         step=0.5, format='0.0')
 #        present PID algorithm doesn't care about starting angle, setting this is pointless
 #        sim_starting_ang_input = Slider(title=dimension.upper() + " angle [degree]", value=2.0, start=-90, end=90,
 #                                        step=0.5, format='0.0')
-        sim_desired_pos_input = Slider(title="Desired " + dimension.upper() + " position [cm]", value=0, start=-100,
+        sim_desired_pos_input = Slider(title="Desired " + dimension.upper() + " position [cm]",
+                                       value=values[tab][dimension]["set_asked_value"] / SI_base, start=-100,
                                        end=100, step=0.5, format='0.0')
 
         tabl.append(column(sim_starting_pos_input, sim_starting_vel_input, sim_desired_pos_input,
@@ -263,16 +297,21 @@ for tab in ["Simulation 1", "Simulation 2"]:
                                                                    axis=dimension, simulation=tab))
 
     """ PID widgets """
-    sim_pid_type_input = RadioButtonGroup(labels=["Positional", "Incremental"], active=1)
-    sim_kp_input = Slider(title="Amplification", value=0.025, start=0.005, end=1.00, step=0.005, format='0.000')
-    sim_ti_input = Slider(title="Integral action time factor", value=0.015, start=0.005, end=1.00, step=0.005,
+    sim_pid_type_input = RadioButtonGroup(labels=["Positional", "Incremental"], active=values[tab]["set_pid_type"])
+    sim_kp_input = Slider(title="Amplification", value=values[tab]["set_kp"], start=0.005, end=1.00, step=0.005,
                           format='0.000')
-    sim_td_input = Slider(title="Derivative action time factor", value=0.050, start=0.005, end=1.00, step=0.005,
-                          format='0.000')
-    sim_servo_min_range_input = Slider(title="Servo minimal range", value=-15, start=-90, end=-1, step=1)
-    sim_servo_max_range_input = Slider(title="Servo maximal range", value=15, start=1, end=90, step=1)
+    sim_ti_input = Slider(title="Integral action time factor", value=values[tab]["set_ti"], start=0.005, end=1.00,
+                          step=0.005, format='0.000')
+    sim_td_input = Slider(title="Derivative action time factor", value=values[tab]["set_td"], start=0.005, end=1.00,
+                          step=0.005, format='0.000')
+    sim_servo_min_range_input = Slider(title="Servo minimal range", value=values[tab]["set_angle_min"], start=-90,
+                                       end=-1, step=1)
+    sim_servo_max_range_input = Slider(title="Servo maximal range", value=values[tab]["set_angle_max"], start=1, end=90,
+                                       step=1)
 
-    sim_servo_voltage_input = RangeSlider(title="Servo voltage", value=(-100, 100), start=-200, end=200, step=1)
+    sim_servo_voltage_input = RangeSlider(title="Servo voltage", value=(values[tab]["set_voltage_min"],
+                                                                        values[tab]["set_voltage_max"]),
+                                          start=-50, end=50, step=1)
 
     sim_pid_type_input.on_change('active', partial(callback, name='set_pid_type', simulation=tab))
     sim_kp_input.on_change('value_throttled', partial(callback, name='set_kp', simulation=tab))
@@ -361,3 +400,4 @@ curdoc().add_root(
 
 curdoc().title = "Self-balancing table simulation"
 update_plots()
+# curdoc().theme = 'dark_minimal'
