@@ -291,7 +291,7 @@ for tab in ["Simulation 1", "Simulation 2"]:
         sim_starting_pos_input = Slider(title=dimension.upper() + " position [cm]",
                                         value=values[tab][dimension]["set_pos_init"] / SI_base, start=-100, end=100,
                                         step=0.5, format='0.0')
-        sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [m/s]",
+        sim_starting_vel_input = Slider(title=dimension.upper() + " velocity [cm/s]",
                                         value=values[tab][dimension]["set_speed_init"] / SI_base, start=-30, end=30,
                                         step=0.5, format='0.0')
         #        present PID algorithm doesn't care about starting angle, setting this is pointless

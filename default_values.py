@@ -34,7 +34,7 @@ values["Simulation 1"]["set_voltage_max"] = 10.0
 # Table config
 values["Simulation 1"]["set_acceleration"] = "Earth (9.81)"
 
-values["Simulation 1"]["x"]["set_pos_init"] = -0.395
+values["Simulation 1"]["x"]["set_pos_init"] = -0.60
 values["Simulation 1"]["x"]["set_speed_init"] = 0.045
 values["Simulation 1"]["x"]["set_asked_value"] = -0.43
 
