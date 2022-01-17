@@ -16,12 +16,12 @@ values["Simulation 2"] = {"x": {}, "y": {}}
 values["Global"] = {"set_tp": 0.01, "set_simulation_time": 60}
 
 values["Simulation 1"]["toggle"] = True
-values["Simulation 2"]["toggle"] = False
+values["Simulation 2"]["toggle"] = True
 """ Starting values for Simulation 1 """
 
 # PID config
 values["Simulation 1"]["set_pid_type"] = Positional
-values["Simulation 1"]["set_kp"] = 1.0
+values["Simulation 1"]["set_kp"] = 1.5
 values["Simulation 1"]["set_ti"] = 0.145
 values["Simulation 1"]["set_td"] = 0.25
 
@@ -34,13 +34,13 @@ values["Simulation 1"]["set_voltage_max"] = 10.0
 # Table config
 values["Simulation 1"]["set_acceleration"] = "Earth (9.81)"
 
-values["Simulation 1"]["x"]["set_pos_init"] = 0.05
-values["Simulation 1"]["x"]["set_speed_init"] = 0
-values["Simulation 1"]["x"]["set_asked_value"] = 1
+values["Simulation 1"]["x"]["set_pos_init"] = -0.395
+values["Simulation 1"]["x"]["set_speed_init"] = 0.045
+values["Simulation 1"]["x"]["set_asked_value"] = -0.43
 
-values["Simulation 1"]["y"]["set_pos_init"] = -0.10
-values["Simulation 1"]["y"]["set_speed_init"] = 0
-values["Simulation 1"]["y"]["set_asked_value"] = 0.5
+values["Simulation 1"]["y"]["set_pos_init"] = -0.50
+values["Simulation 1"]["y"]["set_speed_init"] = 0.03
+values["Simulation 1"]["y"]["set_asked_value"] = 0.065
 
 # Noise config
 values["Simulation 1"]["set_noise_active"] = False
@@ -70,23 +70,23 @@ values["Simulation 2"]["set_voltage_max"] = 10.0
 # Table config
 values["Simulation 2"]["set_acceleration"] = "Earth (9.81)"
 
-values["Simulation 2"]["x"]["set_pos_init"] = 0.05
-values["Simulation 2"]["x"]["set_speed_init"] = 0
-values["Simulation 2"]["x"]["set_asked_value"] = 1
+values["Simulation 2"]["x"]["set_pos_init"] = -0.205
+values["Simulation 2"]["x"]["set_speed_init"] = 0.025
+values["Simulation 2"]["x"]["set_asked_value"] = 0.025
 
-values["Simulation 2"]["y"]["set_pos_init"] = -0.10
-values["Simulation 2"]["y"]["set_speed_init"] = 0
-values["Simulation 2"]["y"]["set_asked_value"] = 0.5
+values["Simulation 2"]["y"]["set_pos_init"] = 0.03
+values["Simulation 2"]["y"]["set_speed_init"] = 0.0
+values["Simulation 2"]["y"]["set_asked_value"] = -0.03
 
 # Noise config
-values["Simulation 2"]["set_noise_active"] = False
+values["Simulation 2"]["set_noise_active"] = True
 
 values["Simulation 2"]["x"]["set_noise_type"] = Impulse
 values["Simulation 2"]["x"]["set_noise_level"] = 10
 values["Simulation 2"]["x"]["set_noise_period"] = 60.0
-values["Simulation 2"]["x"]["set_noise_frequency"] = 1.0
+values["Simulation 2"]["x"]["set_noise_frequency"] = 0.25
 
 values["Simulation 2"]["y"]["set_noise_type"] = Impulse
 values["Simulation 2"]["y"]["set_noise_level"] = 10
-values["Simulation 2"]["y"]["set_noise_period"] = 60.0
-values["Simulation 2"]["y"]["set_noise_frequency"] = 1.0
+values["Simulation 2"]["y"]["set_noise_period"] = 30.0
+values["Simulation 2"]["y"]["set_noise_frequency"] = 25.0

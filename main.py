@@ -100,12 +100,12 @@ def t_sim_update(attr, old, new):
         for dim_call in ['x', 'y']:
             model = curdoc().get_model_by_name(_tab + '_noise_freq_' + dim_call)
             model.update(start=float(1 / float(new)))
-            if model.value > float(1 / float(new)):
+            if model.value < float(1 / float(new)):
                 model.update(value=float(1 / float(new)))
                 simulation_dict[_tab].set_property_axis('set_noise_frequency', dim_call, float(1 / float(new)))
             model = curdoc().get_model_by_name(_tab + '_noise_time_' + dim_call)
             model.update(end=int(new))
-            if model.value < int(new):
+            if model.value > int(new):
                 model.update(value=int(new))
                 simulation_dict[_tab].set_property_axis('set_noise_period', dim_call, int(new))
 
@@ -317,8 +317,8 @@ for tab in ["Simulation 1", "Simulation 2"]:
 
     """ PID widgets """
     sim_pid_type_input = RadioButtonGroup(labels=["Positional", "Incremental"], active=values[tab]["set_pid_type"])
-    sim_kp_input = Slider(title="Amplification", value=values[tab]["set_kp"], start=0.005, end=1.00, step=0.005,
-                          format='0.000')
+    sim_kp_input = Slider(title="Amplification", value=values[tab]["set_kp"], start=0.05, end=10.00, step=0.05,
+                          format='0.00')
     sim_ti_input = Slider(title="Integral action time factor", value=values[tab]["set_ti"], start=0.005, end=1.00,
                           step=0.005, format='0.000')
     sim_td_input = Slider(title="Derivative action time factor", value=values[tab]["set_td"], start=0.005, end=1.00,
